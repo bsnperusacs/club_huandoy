@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "292933443019",
+    "project_id": "clubdeportivohuandoy",
+    "storage_bucket": "clubdeportivohuandoy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:292933443019:android:c2c36cd22eccda4ac26a4e",
+        "android_client_info": {
+          "package_name": "com.bsnperu.club_huandoy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmrXgt9vfMipu5fJ1VQT6BQ76Iagl_glc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

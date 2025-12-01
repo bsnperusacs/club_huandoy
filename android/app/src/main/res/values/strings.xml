@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">club_huandoy</string>
+
+    <string name="facebook_app_id">860877966287700</string>
+    
+    <string name="facebook_client_token">9c8d4eb42f3f1540622f9bcaa0b3d96b</string>
+    
+    <string name="fb_login_protocol_scheme">fb860877966287700</string>
+</resources>

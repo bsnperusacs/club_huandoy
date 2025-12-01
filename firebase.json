@@ -1,0 +1,35 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "clubdeportivohuandoy",
+          "appId": "1:292933443019:android:c2c36cd22eccda4ac26a4e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "clubdeportivohuandoy",
+          "configurations": {
+            "android": "1:292933443019:android:c2c36cd22eccda4ac26a4e",
+            "web": "1:292933443019:web:cae61c9210f6b56fc26a4e"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}
