@@ -27,21 +27,35 @@ exports.validarConvenio = onRequest(async (req, res) => {
       .get();
 
     if (snap.empty) {
-      return res.status(404).json({ valido: false, mensaje: "Código no existe" });
+      return res
+        .status(404)
+        .json({ valido: false, mensaje: "Código no existe" });
     }
 
     const data = snap.docs[0].data();
 
     return res.json({
       valido: true,
-      tipo: data.tipo,
-      descuento: data.descuento,
-      acumulable: data.acumulable,
-      requiereAsistencia: data.requiereAsistencia ?? false,
-      asistenciaMinima: data.asistenciaMinima ?? 75,
-      aplicarUnaVez: data.aplicarUnaVez ?? false,
+
+      // CAMPOS ACTUALIZADOS SEGÚN TU MODELO DE FLUTTER
       titulo: data.titulo,
       descripcion: data.descripcion,
+      codigo: data.codigo,
+
+      tipoDescuento: data.tipoDescuento,            // porcentaje / monto
+      valorDescuento: data.valorDescuento,          // número
+      aplicaEn: data.aplicaEn,                      // mensualidad / matricula / ambos
+
+      requiereAsistencia: data.requiereAsistencia ?? false,
+      asistenciaMinima: data.asistenciaMinima ?? 75,
+      penalidadSiFalla: data.penalidadSiFalla ?? "normal",
+      recuperaDescuentoSiCumple: data.recuperaDescuentoSiCumple ?? false,
+
+      acumulableConOtros: data.acumulableConOtros ?? false,
+      aplicaUnaVez: data.aplicaUnaVez ?? false,
+      permanente: data.permanente ?? false,
+
+      imagenUrl: data.imagenUrl ?? null,
     });
   } catch (e) {
     console.error("❌ Error validar convenio:", e);

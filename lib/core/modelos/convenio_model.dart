@@ -1,4 +1,4 @@
-//📁 lib/roles/admin/modelos/convenio_model.dart
+//📁 lib/core/modelos/convenio_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 

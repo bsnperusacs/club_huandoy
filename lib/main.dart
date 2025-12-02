@@ -10,20 +10,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 // Localización
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-// Pantallas base
+// Provider
+import 'package:provider/provider.dart';
+import 'package:club_huandoy/core/providers/carrito_asignacion_provider.dart';
+
+// Pantallas Base
 import 'autenticacion/pantalla_login.dart';
 import 'autenticacion/pantalla_registro.dart';
 import 'autenticacion/pantalla_recuperar.dart';
 import 'autenticacion/verificar_correo.dart';
 import 'pantalla_inicio.dart';
-import 'pantalla_feedback.dart'; // 👈 FALTABA ESTA IMPORTACIÓN
-import 'package:club_huandoy/core/modelos/estudiante_model.dart';
+import 'pantalla_feedback.dart';
 
 // PADRE
-import 'roles/padre/pantallas/estudiantes_registrados.dart';
-import 'roles/padre/pantallas/pantalla_asignar_horario.dart';
-import 'roles/padre/pantallas/pantalla_registro_padre.dart';
 import 'roles/padre/pantallas/matricula/pantalla_matricular_estudiante.dart';
+import 'roles/padre/pantallas/pantalla_registro_padre.dart';
+import 'roles/padre/pantallas/estudiantes_registrados.dart';
+
+// PADRE – PAGO / CARRITO
+import 'roles/padre/pantallas/pago/pantalla_pagar_carrito.dart';
+import 'roles/padre/pantallas/pago/pantalla_pagar_asignacion.dart';
 
 // ADMIN
 import 'roles/admin/pantalla_admin_home.dart';
@@ -33,7 +39,7 @@ import 'roles/admin/pantallas/horarios/admin_lista_horarios.dart';
 import 'roles/admin/pantallas/grupos/admin_lista_grupos.dart';
 import 'roles/admin/pantallas/convenios/admin_lista_convenios.dart';
 
-// Firebase Options
+// Firebase Config
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -51,58 +57,53 @@ class ClubHuandoyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Club Deportivo Integral Huandoy',
-      debugShowCheckedModeBanner: false,
-
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
-
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => CarritoAsignacionProvider(),
+        ),
       ],
-      supportedLocales: const [
-        Locale('es', 'ES'),
-        Locale('en', 'US'),
-      ],
+      child: MaterialApp(
+        title: 'Club Deportivo Integral Huandoy',
+        debugShowCheckedModeBanner: false,
 
-      initialRoute: '/',
-      routes: {
-        // CONTROL DE SESIÓN
-        '/': (context) => const PantallaControl(),
-        '/feedback': (context) => const PantallaFeedback(),
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          useMaterial3: true,
+        ),
 
-        // AUTENTICACIÓN
-        '/login': (context) => const PantallaLogin(),
-        '/registro': (context) => const PantallaRegistro(),
-        '/recuperar': (context) => const PantallaRecuperar(),
-        '/verificarCorreo': (context) => const PantallaVerificarCorreo(),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es', 'ES'),
+          Locale('en', 'US'),
+        ],
 
-        //------------------------------------
-        // PADRE
-        //------------------------------------
-        '/inicio': (context) => const PantallaInicio(),
-        '/registroPadre': (context) => const PantallaRegistroPadre(),
-        '/matricula': (context) => const PantallaMatriculaEstudiante(),
-        '/estudiantesRegistrados': (context) => const EstudiantesRegistrados(),
+        initialRoute: '/',
+        routes: {
+          // CONTROL DE SESIÓN
+          '/': (context) => const PantallaControl(),
+          '/feedback': (context) => const PantallaFeedback(),
 
-        '/asignarHorario': (context) {
-          final est = ModalRoute.of(context)!.settings.arguments as Estudiante;
-          return AsignarHorario(estudiante: est);
+          // AUTENTICACIÓN
+          '/login': (context) => const PantallaLogin(),
+          '/registro': (context) => const PantallaRegistro(),
+          '/recuperar': (context) => const PantallaRecuperar(),
+          '/verificarCorreo': (context) => const PantallaVerificarCorreo(),
+
+          // PADRE
+          '/inicio': (context) => const PantallaInicio(),
+          '/registroPadre': (context) => const PantallaRegistroPadre(),
+          '/matricula': (context) => const PantallaMatriculaEstudiante(),
+          '/estudiantesRegistrados': (context) => const EstudiantesRegistrados(),
+
+          // CARRITO Y PAGO
+          '/pagarCarrito': (context) => const PantallaPagarCarrito(),
         },
-
-        // ADMIN
-        '/adminHome': (context) => PantallaAdminHome(),
-        '/adminDisciplinas': (context) => AdminListaDisciplinas(),
-        '/adminEntrenadores': (context) => AdminListaEntrenadores(),
-        '/adminHorarios': (context) => AdminListaHorarios(),
-        '/adminGrupos': (context) => AdminListaGrupos(),
-        '/adminConvenios': (context) => AdminListaConvenios(),
-      },
+      ),
     );
   }
 }
@@ -125,7 +126,6 @@ class PantallaControl extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Esperando estado de auth
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -134,17 +134,14 @@ class PantallaControl extends StatelessWidget {
 
         final user = snapshot.data;
 
-        // Usuario NO autenticado
         if (user == null) {
           return const PantallaLogin();
         }
 
-        // Si el correo NO está verificado → pantalla_verificar_correo
         if (!user.emailVerified) {
           return const PantallaVerificarCorreo();
         }
 
-        // Ya autenticado → verificar rol
         return FutureBuilder<String>(
           future: _leerRol(user.uid),
           builder: (context, snap) {
@@ -156,12 +153,8 @@ class PantallaControl extends StatelessWidget {
 
             final rol = snap.data;
 
-            // 🔥 ADMINISTRADOR
-            if (rol == 'admin') {
-              return PantallaAdminHome();
-            }
+            if (rol == 'admin') return PantallaAdminHome();
 
-            // 🟦 PADRE
             return const PantallaInicio();
           },
         );

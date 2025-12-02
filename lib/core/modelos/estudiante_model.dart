@@ -1,182 +1,154 @@
-// 📁 Ubicación: lib/roles/padre/modelos/estudiante_model.dart
+//lib/core/modelos/estudiante_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Estudiante {
-  final String id;
-  final String padreId;
+  String id;            // 🔥 AHORA ESTE ID = DNI
+  String padreId;
+  String nombre;
+  String apellido;
+  String dni;
 
-  final String nombre;
-  final String apellido;
-  final DateTime fechaNacimiento;
-  final String dni;
-  final String fotoUrl;
+  DateTime? fechaNacimiento;
+  String genero;
+  String celular;
 
-  // 🔥 NUEVOS CAMPOS DEL OCR
-  final String genero;
-  final String estadoCivil;
-  final String direccion;
-  final String celular;
+  String fotoUrl;
 
-  // 🔥 Datos de entrenamiento
-  final String deporteId;     
-  final String categoriaId;   
-  final String grupoId;
-  final String horarioId;    
-  final String entrenadorId;
+  // ESTADO DE MATRÍCULA
+  String estado;               
+  bool matriculaPagada;        
 
-  // 🔥 Estado del proceso
-  final String estado; // registrado | asignado | pagado
+  DateTime? fechaMatricula;
+  DateTime? fechaPago;
 
-  // 🔥 Datos económicos
-  final double montoCategoria;
-  final double montoProrrateo;
-  final double montoDescuento;
-  final double montoFinal;
+  // ASIGNACIÓN (se completará DESPUÉS de pagar)
+  String disciplinaId;
+  String categoriaId;
+  String grupoId;
+  String horarioId;
+  String entrenadorId;
 
-  // 🔥 Matrícula
-  final bool matriculaPagada;
-  final DateTime fechaMatricula;
-  final DateTime? fechaMatriculaPagada;
+  // MONTOS
+  double montoCategoria;
+  double montoProrrateo;
+  double montoDescuento;
+  double montoFinal;
 
-  // 🔥 Fechas del proceso
-  final DateTime? fechaAsignacion;
-  final DateTime? fechaPago;
-
-  // 🔥 Info de pago externo
-  final String? idPagoMp;
-
-  final bool activo;
+  bool activo;
 
   Estudiante({
-    required this.id,
+    required this.id,              // 🔥 Se usará como DNI
     required this.padreId,
     required this.nombre,
     required this.apellido,
-    required this.fechaNacimiento,
     required this.dni,
+    required this.fechaNacimiento,
+    required this.genero,
+    required this.celular,
     required this.fotoUrl,
 
-    // ⬇ NUEVOS CAMPOS
-    required this.genero,
-    required this.estadoCivil,
-    required this.direccion,
-    required this.celular,
+    required this.estado,
+    required this.matriculaPagada,
+    required this.fechaMatricula,
+    required this.fechaPago,
 
-    // ENTRENAMIENTO
-    required this.deporteId,
+    required this.disciplinaId,
     required this.categoriaId,
     required this.grupoId,
     required this.horarioId,
     required this.entrenadorId,
 
-    // ESTADO
-    required this.estado,
-
-    // ECONÓMICOS
     required this.montoCategoria,
     required this.montoProrrateo,
     required this.montoDescuento,
     required this.montoFinal,
 
-    // MATRÍCULA
-    required this.matriculaPagada,
-    required this.fechaMatricula,
-    this.fechaMatriculaPagada,
-
-    // PROCESOS
-    this.fechaAsignacion,
-    this.fechaPago,
-
-    this.idPagoMp,
     required this.activo,
   });
 
-  factory Estudiante.fromMap(Map<String, dynamic> data, String id) {
+  // ===================================================
+  // 🔥 CONVERTIR DESDE FIRESTORE HACIA EL MODELO
+  //    AQUÍ ES DONDE id = DNI
+  // ===================================================
+  factory Estudiante.fromMap(Map<String, dynamic> map, String idDocumento) {
+    
+    // 🔥 idDocumento = DNI porque tú guardas doc(dni)
+    final dniLeido = map["dni"]?.toString().trim() ?? idDocumento;
+
     return Estudiante(
-      id: id,
-      padreId: data['padreId'] ?? '',
-      nombre: data['nombre'] ?? '',
-      apellido: data['apellido'] ?? '',
-      fechaNacimiento: DateTime.parse(data['fechaNacimiento']),
-      dni: data['dni'] ?? '',
-      fotoUrl: data['fotoUrl'] ?? '',
+      id: dniLeido,                   // 🔥 ID DEL MODELO = DNI
+      padreId: map["padreId"] ?? "",
+      nombre: map["nombre"] ?? "",
+      apellido: map["apellido"] ?? "",
+      dni: dniLeido,                 // 🔥 DNI siempre consistente
 
-      // ⬇ NUEVOS CAMPOS
-      genero: data['genero'] ?? '',
-      estadoCivil: data['estadoCivil'] ?? '',
-      direccion: data['direccion'] ?? '',
-      celular: data['celular'] ?? '',
-
-      // ENTRENAMIENTO
-      deporteId: data['deporteId'] ?? '',
-      categoriaId: data['categoriaId'] ?? '',
-      grupoId: data['grupoId'] ?? '',
-      horarioId: data['horarioId'] ?? '',
-      entrenadorId: data['entrenadorId'] ?? '',
-
-      estado: data['estado'] ?? 'registrado',
-
-      montoCategoria: (data['montoCategoria'] ?? 0).toDouble(),
-      montoProrrateo: (data['montoProrrateo'] ?? 0).toDouble(),
-      montoDescuento: (data['montoDescuento'] ?? 0).toDouble(),
-      montoFinal: (data['montoFinal'] ?? 0).toDouble(),
-
-      matriculaPagada: data['matriculaPagada'] ?? false,
-      fechaMatricula: DateTime.parse(data['fechaMatricula']),
-      fechaMatriculaPagada: data['fechaMatriculaPagada'] != null
-          ? DateTime.parse(data['fechaMatriculaPagada'])
+      fechaNacimiento: map["fechaNacimiento"] is Timestamp
+          ? (map["fechaNacimiento"] as Timestamp).toDate()
           : null,
 
-      fechaAsignacion: data['fechaAsignacion'] != null
-          ? DateTime.parse(data['fechaAsignacion'])
-          : null,
-      fechaPago: data['fechaPago'] != null
-          ? DateTime.parse(data['fechaPago'])
+      genero: map["genero"] ?? "",
+      celular: map["celular"] ?? "",
+      fotoUrl: map["fotoUrl"] ?? "",
+
+      estado: map["estado"] ?? "registrado",
+      matriculaPagada: map["matriculaPagada"] ?? false,
+
+      fechaMatricula: map["fechaMatricula"] is Timestamp
+          ? (map["fechaMatricula"] as Timestamp).toDate()
           : null,
 
-      idPagoMp: data['idPagoMp'],
-      activo: data['activo'] ?? true,
+      fechaPago: map["fechaPago"] is Timestamp
+          ? (map["fechaPago"] as Timestamp).toDate()
+          : null,
+
+      disciplinaId: map["disciplinaId"] ?? "",
+      categoriaId: map["categoriaId"] ?? "",
+      grupoId: map["grupoId"] ?? "",
+      horarioId: map["horarioId"] ?? "",
+      entrenadorId: map["entrenadorId"] ?? "",
+
+      montoCategoria: (map["montoCategoria"] ?? 0).toDouble(),
+      montoProrrateo: (map["montoProrrateo"] ?? 0).toDouble(),
+      montoDescuento: (map["montoDescuento"] ?? 0).toDouble(),
+      montoFinal: (map["montoFinal"] ?? 0).toDouble(),
+
+      activo: map["activo"] ?? true,
     );
   }
 
+  // ===================================================
+  // 🔥 CONVERTIR HACIA FIRESTORE
+  // ===================================================
   Map<String, dynamic> toMap() {
     return {
-      'padreId': padreId,
-      'nombre': nombre,
-      'apellido': apellido,
-      'fechaNacimiento': fechaNacimiento.toIso8601String(),
-      'dni': dni,
-      'fotoUrl': fotoUrl,
+      "padreId": padreId,
+      "nombre": nombre,
+      "apellido": apellido,
+      "dni": dni,
 
-      // ⬇ NUEVOS CAMPOS
-      'genero': genero,
-      'estadoCivil': estadoCivil,
-      'direccion': direccion,
-      'celular': celular,
+      "fechaNacimiento": fechaNacimiento,
+      "genero": genero,
+      "celular": celular,
+      "fotoUrl": fotoUrl,
 
-      // ENTRENAMIENTO
-      'deporteId': deporteId,
-      'categoriaId': categoriaId,
-      'grupoId': grupoId,
-      'horarioId': horarioId,
-      'entrenadorId': entrenadorId,
+      "estado": estado,
+      "matriculaPagada": matriculaPagada,
+      "fechaMatricula": fechaMatricula,
+      "fechaPago": fechaPago,
 
-      // ESTADO
-      'estado': estado,
-      'montoCategoria': montoCategoria,
-      'montoProrrateo': montoProrrateo,
-      'montoDescuento': montoDescuento,
-      'montoFinal': montoFinal,
+      "disciplinaId": disciplinaId,
+      "categoriaId": categoriaId,
+      "grupoId": grupoId,
+      "horarioId": horarioId,
+      "entrenadorId": entrenadorId,
 
-      'matriculaPagada': matriculaPagada,
-      'fechaMatricula': fechaMatricula.toIso8601String(),
-      'fechaMatriculaPagada': fechaMatriculaPagada?.toIso8601String(),
-      'fechaAsignacion': fechaAsignacion?.toIso8601String(),
-      'fechaPago': fechaPago?.toIso8601String(),
+      "montoCategoria": montoCategoria,
+      "montoProrrateo": montoProrrateo,
+      "montoDescuento": montoDescuento,
+      "montoFinal": montoFinal,
 
-      'idPagoMp': idPagoMp,
-      'activo': activo,
+      "activo": activo,
     };
   }
 }
