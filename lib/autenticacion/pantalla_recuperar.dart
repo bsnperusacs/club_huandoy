@@ -15,13 +15,17 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Recuperar contraseña"),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Center(
@@ -35,49 +39,40 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 20),
 
-                  // CAMPO CORREO
+                  const SizedBox(height: 25),
+
+                  // =============================
+                  // INPUT — USANDO THEME GLOBAL
+                  // =============================
                   TextFormField(
                     controller: _correoCtrl,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: "Correo electrónico",
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      prefixIcon: Icon(Icons.email_outlined),
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) {
                         return "Ingrese su correo";
                       }
-                      if (!v.contains("@")) {
-                        return "Correo no válido";
-                      }
+                      if (!v.contains("@")) return "Correo no válido";
                       return null;
                     },
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 30),
 
-                  // BOTÓN
+                  // =============================
+                  // BOTÓN — USANDO ELEVATEDBUTTON THEME
+                  // =============================
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
                       onPressed: cargando ? null : _recuperar,
                       child: cargando
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
+                          ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
                               "Enviar enlace",
                               style: TextStyle(
@@ -89,9 +84,16 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
                   ),
 
                   const SizedBox(height: 20),
+
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text("Volver al inicio de sesión"),
+                    child: Text(
+                      "Volver al inicio de sesión",
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -102,13 +104,14 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
     );
   }
 
-  // ================================
-  // 🔥 FUNCIÓN PARA ENVIAR CORREO
-  // ================================
+  // ====================================
+  // 🔥 FUNCIÓN PARA ENVIAR EL CORREO
+  // ====================================
   Future<void> _recuperar() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => cargando = true);
+
     try {
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: _correoCtrl.text.trim());
@@ -116,9 +119,9 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("📨 Te enviamos un enlace a tu correo."),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text("Te enviamos un enlace a tu correo."),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
 
@@ -126,11 +129,10 @@ class _PantallaRecuperarState extends State<PantallaRecuperar> {
 
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error: $e"),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     } finally {

@@ -12,6 +12,17 @@ class PantallaInicio extends StatefulWidget {
 }
 
 class _PantallaInicioState extends State<PantallaInicio> {
+  Future<Map<String, dynamic>?> _cargarPerfil() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final snap = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(uid)
+        .get();
+
+    return snap.data();
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -22,17 +33,16 @@ class _PantallaInicioState extends State<PantallaInicio> {
       );
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('padres')
-          .doc(uid)
-          .snapshots(),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _cargarPerfil(),
       builder: (context, snapshot) {
+        final cargando = !snapshot.hasData;
+
         bool perfilIncompleto = true;
         String nombreMostrado = "Padre/Tutor";
 
-        if (snapshot.hasData && snapshot.data!.exists) {
-          final data = snapshot.data!.data() as Map<String, dynamic>;
+        if (!cargando && snapshot.data != null) {
+          final data = snapshot.data!;
           perfilIncompleto = !(data['registroCompleto'] == true);
 
           final nombres = data['nombres'] ?? "";
@@ -43,123 +53,25 @@ class _PantallaInicioState extends State<PantallaInicio> {
         }
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF1F7F3),
+
           appBar: AppBar(
-            title: const Text('Club Deportivo Integral Huandoy'),
+            backgroundColor: const Color(0xFF0F8F51), // Verde institucional
+            elevation: 0,
+            title: const Text(
+              'Club Deportivo Integral Huandoy',
+              style: TextStyle(color: Colors.white),
+            ),
             centerTitle: true,
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
             actions: [
               IconButton(
-                icon: const Icon(Icons.feedback, color: Colors.red, size: 30),
-                tooltip: 'Enviar feedback',
-                onPressed: () {
-                  // 🔥 ABRIR FORMULARIO DE FEEDBACK
-                  Navigator.pushNamed(context, '/feedback');
-                },
-              ),
+                icon: const Icon(Icons.feedback, color: Colors.white),
+                onPressed: () => Navigator.pushNamed(context, '/feedback'),
+              )
             ],
           ),
 
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                UserAccountsDrawerHeader(
-                  accountName: Text(
-                    nombreMostrado,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  accountEmail: Text(FirebaseAuth.instance.currentUser?.email ?? ""),
-                  currentAccountPicture: const CircleAvatar(
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, color: Colors.blueAccent, size: 40),
-                  ),
-                  decoration: const BoxDecoration(color: Colors.blueAccent),
-                ),
-
-                // INICIO
-                ListTile(
-                  leading: const Icon(Icons.home),
-                  title: const Text('Inicio'),
-                  onTap: () => Navigator.pop(context),
-                ),
-
-                // 🔥 NUEVO — ESTUDIANTES REGISTRADOS
-                ListTile(
-                  leading: const Icon(Icons.people_alt),
-                  title: const Text('Estudiantes Registrados'),
-                  onTap: () {
-                    if (perfilIncompleto) {
-                      _alerta(context);
-                    } else {
-                      Navigator.pushNamed(context, '/estudiantesRegistrados');
-                    }
-                  },
-                ),
-
-                // MATRÍCULA
-                ListTile(
-                  leading: const Icon(Icons.school),
-                  title: const Text('Matrícula'),
-                  onTap: () {
-                    if (perfilIncompleto) {
-                      _alerta(context);
-                    } else {
-                      Navigator.pushNamed(context, '/matricula');
-                    }
-                  },
-                ),
-
-                // EVENTOS
-                ListTile(
-                  leading: const Icon(Icons.event),
-                  title: const Text('Eventos y Actividades'),
-                  onTap: () => Navigator.pushNamed(context, '/eventos'),
-                ),
-
-                // PAGOS
-                ListTile(
-                  leading: const Icon(Icons.payment),
-                  title: const Text('Pagos y Cuotas'),
-                  onTap: () {
-                    if (perfilIncompleto) {
-                      _alerta(context);
-                    } else {
-                      Navigator.pushNamed(context, '/pagos');
-                    }
-                  },
-                ),
-
-                // CONVENIOS
-                ListTile(
-                  leading: const Icon(Icons.handshake),
-                  title: const Text('Convenios'),
-                  onTap: () => Navigator.pushNamed(context, '/convenios'),
-                ),
-
-                const Divider(),
-
-                ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Cerrar sesión'),
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-
-                  if (!mounted) return;
-
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
-                },
-              ),
-              ],
-            ),
-          ),
+          drawer: _buildDrawer(nombreMostrado, perfilIncompleto),
 
           body: Stack(
             children: [
@@ -167,67 +79,179 @@ class _PantallaInicioState extends State<PantallaInicio> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.sports_soccer, size: 80, color: Colors.blueAccent),
+                    Icon(Icons.sports_soccer,
+                        size: 90, color: Color(0xFF00C8FF)), // celeste institucional
                     SizedBox(height: 20),
                     Text(
                       'Bienvenido al sistema del club',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              if (perfilIncompleto)
-                Positioned(
-                  bottom: 20,
-                  left: 20,
-                  right: 20,
-                  child: Card(
-                    color: Colors.orange.shade100,
-                    elevation: 10,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.orange,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'Tu registro está incompleto.\nCompleta tus datos ahora.',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pushNamed(context, '/registroPadre'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Completar'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              if (!cargando && perfilIncompleto)
+                _buildTarjetaPerfilIncompleto(context),
             ],
           ),
         );
       },
+    );
+  }
+
+  Drawer _buildDrawer(String nombreMostrado, bool perfilIncompleto) {
+    return Drawer(
+      child: Column(
+        children: [
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              color: Color(0xFF0F8F51), // verde
+            ),
+            accountName: Text(
+              nombreMostrado,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            accountEmail: Text(
+              FirebaseAuth.instance.currentUser?.email ?? "",
+              style: const TextStyle(fontSize: 14),
+            ),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 40, color: Colors.green),
+            ),
+          ),
+
+          _drawerItem(
+            icon: Icons.home,
+            text: "Inicio",
+            onTap: () => Navigator.pop(context),
+          ),
+
+          _drawerItem(
+            icon: Icons.people_alt,
+            text: "Estudiantes Registrados",
+            onTap: () {
+              if (perfilIncompleto) {
+                _alerta(context);
+              } else {
+                Navigator.pushNamed(context, '/estudiantesRegistrados');
+              }
+            },
+          ),
+
+          _drawerItem(
+            icon: Icons.school,
+            text: "Matrícula",
+            onTap: () {
+              if (perfilIncompleto) {
+                _alerta(context);
+              } else {
+                Navigator.pushNamed(context, '/matricula');
+              }
+            },
+          ),
+
+          _drawerItem(
+            icon: Icons.event,
+            text: "Eventos y Actividades",
+            onTap: () => Navigator.pushNamed(context, '/eventos'),
+          ),
+
+          _drawerItem(
+            icon: Icons.payment,
+            text: "Pagos y Cuotas",
+            onTap: () {
+              if (perfilIncompleto) {
+                _alerta(context);
+              } else {
+                Navigator.pushNamed(context, '/pagos');
+              }
+            },
+          ),
+
+          _drawerItem(
+            icon: Icons.handshake,
+            text: "Convenios",
+            onTap: () => Navigator.pushNamed(context, '/convenios'),
+          ),
+
+          const Spacer(),
+
+          _drawerItem(
+            icon: Icons.logout,
+            text: "Cerrar sesión",
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              if (!mounted) return;
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerItem({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.black87),
+      title: Text(text),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildTarjetaPerfilIncompleto(BuildContext context) {
+    return Positioned(
+      bottom: 20,
+      left: 20,
+      right: 20,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade100,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              blurRadius: 10,
+              offset: Offset(0, 4),
+              color: Colors.black26,
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                color: Colors.orange, size: 28),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'Tu registro está incompleto.\nCompleta tus datos ahora.',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, "/registroPadre"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Completar"),
+            )
+          ],
+        ),
+      ),
     );
   }
 

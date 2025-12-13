@@ -40,16 +40,19 @@ class _PantallaRegistroPadreState extends State<PantallaRegistroPadre> {
   final uid = controller.uidActual;
   if (uid != null) {
     await FirebaseFirestore.instance
-        .collection("padres")
+        .collection("usuarios")
         .doc(uid)
         .update({"registroCompleto": true});
   }
+
 
   if (!mounted) return;
 
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text("Registro guardado correctamente.")),
   );
+
+
 
   // ✅ VOLVER A LA PANTALLA DE INICIO
   await Future.delayed(const Duration(milliseconds: 500));

@@ -1,4 +1,4 @@
-// 📁 lib/main.dart
+// 📁 lib/main.dart - CÓDIGO CORREGIDO
 
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:club_huandoy/core/providers/carrito_asignacion_provider.dart';
 
-// Pantallas Base
+// Theme Global
+import 'core/theme/app_theme.dart';
+
+// Pantallas
 import 'autenticacion/pantalla_login.dart';
 import 'autenticacion/pantalla_registro.dart';
 import 'autenticacion/pantalla_recuperar.dart';
@@ -27,30 +30,35 @@ import 'roles/padre/pantallas/matricula/pantalla_matricular_estudiante.dart';
 import 'roles/padre/pantallas/pantalla_registro_padre.dart';
 import 'roles/padre/pantallas/estudiantes_registrados.dart';
 
-// PADRE – PAGO / CARRITO
+// PAGO
 import 'roles/padre/pantallas/pago/pantalla_pagar_carrito.dart';
-import 'roles/padre/pantallas/pago/pantalla_pagar_asignacion.dart';
 
 // ADMIN
 import 'roles/admin/pantalla_admin_home.dart';
-import 'roles/admin/pantallas/disciplinas/admin_lista_disciplinas.dart';
-import 'roles/admin/pantallas/entrenadores/admin_lista_entrenadores.dart';
-import 'roles/admin/pantallas/horarios/admin_lista_horarios.dart';
-import 'roles/admin/pantallas/grupos/admin_lista_grupos.dart';
-import 'roles/admin/pantallas/convenios/admin_lista_convenios.dart';
 
 // Firebase Config
 import 'firebase_options.dart';
 
+// =========================================================================
+// 🚀 FUNCIÓN MAIN CORREGIDA
+// =========================================================================
+
 Future<void> main() async {
+  // Asegura que los bindings de Flutter estén inicializados
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 1. Inicializa Firebase antes de ejecutar la aplicación
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // 2. Ejecuta la aplicación UNA SOLA VEZ
   runApp(const ClubHuandoyApp());
 }
+
+// =========================================================================
+// 🧩 CLASE PRINCIPAL
+// =========================================================================
 
 class ClubHuandoyApp extends StatelessWidget {
   const ClubHuandoyApp({super.key});
@@ -67,10 +75,8 @@ class ClubHuandoyApp extends StatelessWidget {
         title: 'Club Deportivo Integral Huandoy',
         debugShowCheckedModeBanner: false,
 
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-        ),
+        // ✔ THEME GLOBAL
+        theme: AppTheme.light,
 
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -84,7 +90,7 @@ class ClubHuandoyApp extends StatelessWidget {
 
         initialRoute: '/',
         routes: {
-          // CONTROL DE SESIÓN
+          // CONTROL
           '/': (context) => const PantallaControl(),
           '/feedback': (context) => const PantallaFeedback(),
 
@@ -100,23 +106,29 @@ class ClubHuandoyApp extends StatelessWidget {
           '/matricula': (context) => const PantallaMatriculaEstudiante(),
           '/estudiantesRegistrados': (context) => const EstudiantesRegistrados(),
 
-          // CARRITO Y PAGO
+          // PAGO
           '/pagarCarrito': (context) => const PantallaPagarCarrito(),
+          "/carritoHorario": (context) => const PantallaPagarCarrito(),
+          
+          // ADMIN
+          "/adminHome": (context) => PantallaAdminHome(),
         },
       ),
     );
   }
 }
 
-/// CONTROL DE SESIÓN + ROL + VERIFICACIÓN DE CORREO
+// =========================================================================
+// 🔒 CONTROL SESIÓN + CORREO + ROL
+// =========================================================================
+
+/// CONTROL SESIÓN + CORREO + ROL
 class PantallaControl extends StatelessWidget {
   const PantallaControl({super.key});
 
   Future<String> _leerRol(String uid) async {
-    final snap = await FirebaseFirestore.instance
-        .collection('usuarios')
-        .doc(uid)
-        .get();
+    final snap =
+        await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
 
     return snap.data()?['rol'] ?? 'padre';
   }
@@ -126,6 +138,8 @@ class PantallaControl extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        // Muestra el indicador de carga mientras espera el estado de autenticación.
+        // Esto funciona como la pantalla de carga (Splash).
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -134,14 +148,13 @@ class PantallaControl extends StatelessWidget {
 
         final user = snapshot.data;
 
-        if (user == null) {
-          return const PantallaLogin();
-        }
+        // No autenticado
+        if (user == null) return const PantallaLogin();
 
-        if (!user.emailVerified) {
-          return const PantallaVerificarCorreo();
-        }
+        // Correo no verificado
+        if (!user.emailVerified) return const PantallaVerificarCorreo();
 
+        // Leer rol
         return FutureBuilder<String>(
           future: _leerRol(user.uid),
           builder: (context, snap) {
@@ -153,7 +166,7 @@ class PantallaControl extends StatelessWidget {
 
             final rol = snap.data;
 
-            if (rol == 'admin') return PantallaAdminHome();
+            if (rol == 'admin') return const PantallaAdminHome();
 
             return const PantallaInicio();
           },

@@ -1,41 +1,29 @@
 import 'package:flutter/material.dart';
+import '../theme/colores.dart';
 
 class BotonPersonalizado extends StatelessWidget {
   final String texto;
-  final bool cargando;
   final VoidCallback onPressed;
 
   const BotonPersonalizado({
     super.key,
     required this.texto,
-    required this.cargando,
-    required this.onPressed,
+    required this.onPressed, required bool cargando,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: cargando ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          backgroundColor: Colors.blueAccent,
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.verde,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: cargando
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(color: Colors.white),
-              )
-            : Text(
-                texto,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        padding: const EdgeInsets.symmetric(vertical: 14),
       ),
+      child: Text(texto, style: const TextStyle(fontSize: 16)),
     );
   }
 }

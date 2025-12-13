@@ -1,7 +1,6 @@
-// Archivo: lib/core/widgets/paso_final.dart
-
 import 'package:flutter/material.dart';
 import '../controladores/padre_controller.dart';
+import '../widgets/caja_info.dart';
 
 class PasoFinal extends StatefulWidget {
   final PadreController controller;
@@ -34,55 +33,34 @@ class _PasoFinalState extends State<PasoFinal> {
   void initState() {
     super.initState();
 
-    // ==========================
-    // CARGA DESDE CACHE
-    // ==========================
+    // Cargar valores guardados en cache
     _estadoCivil = widget.controller.estadoCivil;
     _numHijosCtrl.text = widget.controller.numeroHijos ?? "";
     _relacionSeleccionada = widget.controller.relacion;
     _aceptaTerminos = widget.controller.aceptaTerminos;
 
-    // ==========================
-    // NORMALIZAR ESTADO CIVIL
-    // ==========================
-    if (_estadoCivil != null) {
-      _estadoCivil = _estadoCivil!.trim();
-
-      const opcionesValidas = [
-        "Soltero",
-        "Casado",
-        "Divorciado",
-        "Viudo"
-      ];
-
-      if (!opcionesValidas.contains(_estadoCivil)) {
-        _estadoCivil = null;
-      }
+    // Normalizar estado civil
+    const opcionesEstadoCivil = ["Soltero", "Casado", "Divorciado", "Viudo"];
+    if (_estadoCivil != null && !opcionesEstadoCivil.contains(_estadoCivil)) {
+      _estadoCivil = null;
     }
 
-    // ==========================
-    // NORMALIZAR RELACIÓN
-    // ==========================
-    if (_relacionSeleccionada != null) {
-      _relacionSeleccionada = _relacionSeleccionada!.trim();
+    // Normalizar relación
+    const relacionesValidas = [
+      "Padre",
+      "Madre",
+      "Tío",
+      "Padrino",
+      "Tutor",
+      "Otro",
+    ];
+    if (_relacionSeleccionada != null &&
+        !relacionesValidas.contains(_relacionSeleccionada)) {
+      _relacionSeleccionada = null;
+    }
 
-      const relacionesValidas = [
-        "Padre",
-        "Madre",
-        "Tío",
-        "Padrino",
-        "Tutor",
-        "Otro",
-      ];
-
-      if (!relacionesValidas.contains(_relacionSeleccionada)) {
-        _relacionSeleccionada = null;
-      }
-
-      if (_relacionSeleccionada == "Otro") {
-        _parentescoOtroCtrl.text =
-            widget.controller.parentescoOtro ?? "";
-      }
+    if (_relacionSeleccionada == "Otro") {
+      _parentescoOtroCtrl.text = widget.controller.parentescoOtro ?? "";
     }
   }
 
@@ -97,8 +75,9 @@ class _PasoFinalState extends State<PasoFinal> {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_aceptaTerminos) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Debes aceptar los términos")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Debes aceptar los términos")),
+      );
       return;
     }
 
@@ -114,6 +93,8 @@ class _PasoFinalState extends State<PasoFinal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
@@ -157,8 +138,7 @@ class _PasoFinalState extends State<PasoFinal> {
               // ==========================
               DropdownButtonFormField<String>(
                 value: _relacionSeleccionada,
-                decoration:
-                    const InputDecoration(labelText: "Relación con el alumno"),
+                decoration: const InputDecoration(labelText: "Relación con el alumno"),
                 items: const [
                   DropdownMenuItem(value: "Padre", child: Text("Padre")),
                   DropdownMenuItem(value: "Madre", child: Text("Madre")),
@@ -170,9 +150,7 @@ class _PasoFinalState extends State<PasoFinal> {
                 onChanged: (v) {
                   setState(() {
                     _relacionSeleccionada = v;
-                    if (v != "Otro") {
-                      _parentescoOtroCtrl.clear();
-                    }
+                    if (v != "Otro") _parentescoOtroCtrl.clear();
                   });
                 },
                 validator: (v) => v == null ? "Obligatorio" : null,
@@ -198,18 +176,14 @@ class _PasoFinalState extends State<PasoFinal> {
 
               const SizedBox(height: 16),
 
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  "TÉRMINOS Y CONDICIONES:\n\n"
-                  "La información brindada tiene carácter de DECLARACIÓN JURADA "
-                  "y es responsabilidad del padre/tutor.",
-                ),
+              // ==========================
+              // TÉRMINOS Y CONDICIONES (CAJA INFO)
+              // ==========================
+              CajaInfo(
+                titulo: "TÉRMINOS Y CONDICIONES:",
+                texto:
+                    "La información brindada tiene carácter de DECLARACIÓN JURADA "
+                    "y es responsabilidad del padre/tutor.",
               ),
 
               Row(
@@ -231,11 +205,13 @@ class _PasoFinalState extends State<PasoFinal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                      onPressed: widget.onAtras, child: const Text("Atrás")),
+                    onPressed: widget.onAtras,
+                    child: const Text("Atrás"),
+                  ),
                   ElevatedButton(
                     onPressed: _guardar,
                     child: const Text("Guardar"),
-                  )
+                  ),
                 ],
               )
             ],

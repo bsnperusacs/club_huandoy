@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-// IMPORTS CORRECTOS SEGÚN TU PROYECTO
+// Widgets
 import 'package:club_huandoy/core/widgets/campo_texto_personalizado.dart';
 import 'package:club_huandoy/core/widgets/boton_personalizado.dart';
 
-// SERVICIO REAL SEGÚN TU ESTRUCTURA
+// Servicio
 import 'package:club_huandoy/core/servicios/servicio_autenticacion.dart';
 
 class PantallaLogin extends StatefulWidget {
@@ -23,15 +22,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
   final ServicioAutenticacion _authServicio = ServicioAutenticacion();
   bool cargando = false;
-
-  Future<String?> _leerRol(String uid) async {
-    final snap = await FirebaseFirestore.instance
-        .collection('usuarios')
-        .doc(uid)
-        .get();
-
-    return snap.data()?['rol'] ?? 'padre';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +51,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
               key: _formKey,
               child: Column(
                 children: [
-                  // EMAIL
                   CampoTextoPersonalizado(
                     label: "Correo electrónico",
                     icono: Icons.email_outlined,
@@ -73,12 +62,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
                   const SizedBox(height: 16),
 
-                  // CONTRASEÑA
                   CampoTextoPersonalizado(
                     label: "Contraseña",
                     icono: Icons.lock_outline,
                     controlador: _passCtrl,
-                    tipo: TextInputType.text, // ← NECESARIO
+                    tipo: TextInputType.text,
                     esPassword: true,
                     validador: (v) =>
                         v != null && v.length >= 6
@@ -144,19 +132,18 @@ class _PantallaLoginState extends State<PantallaLogin> {
     );
   }
 
-  // ===============================
-  // LOGIN NORMAL
-  // ===============================
+  // LOGIN CON CORREO
   Future<void> _iniciarSesion() async {
     setState(() => cargando = true);
 
     try {
-      final cred = await _authServicio.iniciarConCorreo(
+      await _authServicio.iniciarConCorreo(
         correo: _emailCtrl.text.trim(),
         contrasena: _passCtrl.text.trim(),
       );
 
-      await _procesarIngreso(cred.user);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/');
 
     } catch (e) {
       if (!mounted) return;
@@ -167,45 +154,11 @@ class _PantallaLoginState extends State<PantallaLogin> {
     }
   }
 
-  // ===============================
-  // LOGIN GOOGLE
-  // ===============================
+  // LOGIN CON GOOGLE
   Future<void> _iniciarConGoogle() async {
-    final userCred = await _authServicio.iniciarConGoogle();
-    await _procesarIngreso(userCred?.user);
-  }
-
-  // ===============================
-  // PROCESAR ROL
-  // ===============================
-  Future<void> _procesarIngreso(User? user) async {
-    if (user == null || !mounted) return;
-
-    final rol = await _leerRol(user.uid);
-
-    if (rol == "admin") {
-      Navigator.pushReplacementNamed(context, '/adminHome');
-      return;
-    }
-
-    await _verificarPerfilPadre(user);
-  }
-
-  // ===============================
-  // VERIFICAR REGISTRO PADRE
-  // ===============================
-  Future<void> _verificarPerfilPadre(User user) async {
-    final doc = await FirebaseFirestore.instance
-        .collection('padres')
-        .doc(user.uid)
-        .get();
+    await _authServicio.iniciarConGoogle();
 
     if (!mounted) return;
-
-    if (!doc.exists || (doc.data()?['registroCompleto'] != true)) {
-      Navigator.pushReplacementNamed(context, '/registroPadre');
-    } else {
-      Navigator.pushReplacementNamed(context, '/inicio');
-    }
+    Navigator.pushReplacementNamed(context, '/');
   }
 }
