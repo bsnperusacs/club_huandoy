@@ -29,7 +29,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 60),
 
@@ -92,14 +91,6 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
                   const SizedBox(height: 20),
 
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/recuperar'),
-                    child: const Text("¿Olvidaste tu contraseña?"),
-                  ),
-
-                  const SizedBox(height: 16),
-
                   ElevatedButton.icon(
                     icon: const Icon(Icons.g_mobiledata, color: Colors.white),
                     label: const Text("Iniciar con Google"),
@@ -107,23 +98,10 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       backgroundColor: Colors.redAccent,
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                     onPressed: _iniciarConGoogle,
                   ),
                 ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/registro'),
-              child: const Text(
-                "¿No tienes cuenta? Regístrate aquí",
-                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -132,10 +110,9 @@ class _PantallaLoginState extends State<PantallaLogin> {
     );
   }
 
-  // LOGIN CON CORREO
+  // 🔐 LOGIN CORREO
   Future<void> _iniciarSesion() async {
     setState(() => cargando = true);
-
     try {
       await _authServicio.iniciarConCorreo(
         correo: _emailCtrl.text.trim(),
@@ -143,8 +120,13 @@ class _PantallaLoginState extends State<PantallaLogin> {
       );
 
       if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/');
 
+      // 🔥 LIMPIA TODA LA PILA
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/',
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -154,11 +136,16 @@ class _PantallaLoginState extends State<PantallaLogin> {
     }
   }
 
-  // LOGIN CON GOOGLE
+  // 🔐 LOGIN GOOGLE
   Future<void> _iniciarConGoogle() async {
     await _authServicio.iniciarConGoogle();
 
     if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/');
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/',
+      (route) => false,
+    );
   }
 }

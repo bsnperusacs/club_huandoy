@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:club_huandoy/core/widgets/menu_drawer.dart';
 
 class PantallaInicio extends StatefulWidget {
   const PantallaInicio({super.key});
@@ -71,7 +72,11 @@ class _PantallaInicioState extends State<PantallaInicio> {
             ],
           ),
 
-          drawer: _buildDrawer(nombreMostrado, perfilIncompleto),
+            drawer: MenuDrawer(
+              nombreMostrado: nombreMostrado,
+              perfilIncompleto: perfilIncompleto,
+              onPerfilIncompleto: () => _alerta(context),
+            ),
 
           body: Stack(
             children: [
@@ -102,111 +107,6 @@ class _PantallaInicioState extends State<PantallaInicio> {
       },
     );
   }
-
-  Drawer _buildDrawer(String nombreMostrado, bool perfilIncompleto) {
-    return Drawer(
-      child: Column(
-        children: [
-          UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF0F8F51), // verde
-            ),
-            accountName: Text(
-              nombreMostrado,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            accountEmail: Text(
-              FirebaseAuth.instance.currentUser?.email ?? "",
-              style: const TextStyle(fontSize: 14),
-            ),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 40, color: Colors.green),
-            ),
-          ),
-
-          _drawerItem(
-            icon: Icons.home,
-            text: "Inicio",
-            onTap: () => Navigator.pop(context),
-          ),
-
-          _drawerItem(
-            icon: Icons.people_alt,
-            text: "Estudiantes Registrados",
-            onTap: () {
-              if (perfilIncompleto) {
-                _alerta(context);
-              } else {
-                Navigator.pushNamed(context, '/estudiantesRegistrados');
-              }
-            },
-          ),
-
-          _drawerItem(
-            icon: Icons.school,
-            text: "Matrícula",
-            onTap: () {
-              if (perfilIncompleto) {
-                _alerta(context);
-              } else {
-                Navigator.pushNamed(context, '/matricula');
-              }
-            },
-          ),
-
-          _drawerItem(
-            icon: Icons.event,
-            text: "Eventos y Actividades",
-            onTap: () => Navigator.pushNamed(context, '/eventos'),
-          ),
-
-          _drawerItem(
-            icon: Icons.payment,
-            text: "Pagos y Cuotas",
-            onTap: () {
-              if (perfilIncompleto) {
-                _alerta(context);
-              } else {
-                Navigator.pushNamed(context, '/pagos');
-              }
-            },
-          ),
-
-          _drawerItem(
-            icon: Icons.handshake,
-            text: "Convenios",
-            onTap: () => Navigator.pushNamed(context, '/convenios'),
-          ),
-
-          const Spacer(),
-
-          _drawerItem(
-            icon: Icons.logout,
-            text: "Cerrar sesión",
-            onTap: () async {
-              await FirebaseAuth.instance.signOut();
-              if (!mounted) return;
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _drawerItem({
-    required IconData icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.black87),
-      title: Text(text),
-      onTap: onTap,
-    );
-  }
-
   Widget _buildTarjetaPerfilIncompleto(BuildContext context) {
     return Positioned(
       bottom: 20,

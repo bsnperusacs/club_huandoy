@@ -3,62 +3,101 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ProrrateoController {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  /// ================================================
-  /// 🔥 CALCULAR PRORRATEO REAL
-  /// ================================================
   Future<Map<String, dynamic>> calcular({
     required String disciplinaId,
     required String categoria,
     required DateTime fechaInicioClases,
   }) async {
-    // 1. Obtener precio desde disciplina
+    // 1. Obtener precio desde Firestore
     final doc = await db.collection("disciplinas").doc(disciplinaId).get();
-    if (!doc.exists) throw "Disciplina no encontrada.";
+    if (!doc.exists) {
+      throw "Disciplina no encontrada";
+    }
 
     final precios = Map<String, dynamic>.from(doc["precios"]);
-    final double montoCategoria = (precios[categoria] ?? 0).toDouble();
+    final double montoMensual =
+        (precios[categoria] ?? 0).toDouble();
 
-    // 2. Fechas
-    final hoy = DateTime.now();
+    final DateTime hoy = DateTime.now();
 
     // ======================================================
-    // 🔵 CASO 1: EL GRUPO TODAVÍA NO INICIA → PAGAR SOLO CATEGORÍA
+    // CASO 1: AÚN NO INICIAN CLASES → PAGA MES COMPLETO
     // ======================================================
     if (hoy.isBefore(fechaInicioClases)) {
       return {
-        "montoCategoria": montoCategoria,
+        "montoCategoria": montoMensual,
         "montoProrrateo": 0.0,
         "montoDescuento": 0.0,
-        "montoFinal": montoCategoria,
+        "montoFinal": montoMensual,
+        "saldoPendiente": 0.0,
       };
     }
 
     // ======================================================
-    // 🔵 CASO 2: EL GRUPO YA INICIÓ → CALCULAR PRORRATEO
+    // CASO 2: CLASES YA INICIARON → PRORRATEO REAL
+    // CICLO: fechaInicioClases → misma fecha mes siguiente
     // ======================================================
 
-    final int diasEnMes = DateTime(hoy.year, hoy.month + 1, 0).day;
-    final DateTime finMes = DateTime(hoy.year, hoy.month, diasEnMes);
+    // Fin del ciclo actual
+    DateTime finCicloActual = DateTime(
+      hoy.year,
+      hoy.month,
+      fechaInicioClases.day,
+    );
 
-    final int diasRestantes = finMes.difference(hoy).inDays;
+    // Si ya pasó ese día este mes, el ciclo termina el próximo mes
+    if (!finCicloActual.isAfter(hoy)) {
+      finCicloActual = DateTime(
+        hoy.year,
+        hoy.month + 1,
+        fechaInicioClases.day,
+      );
+    }
 
-    double prorrateo = (montoCategoria / 30) * diasRestantes;
+    // Inicio del ciclo actual
+    final DateTime inicioCicloActual = DateTime(
+      finCicloActual.year,
+      finCicloActual.month - 1,
+      fechaInicioClases.day,
+    );
+
+    // Días totales del ciclo
+    final int diasCiclo =
+        finCicloActual.difference(inicioCicloActual).inDays;
+
+    // Días a cobrar (HOY → fin de ciclo)
+    final int diasProrrateo =
+        finCicloActual.difference(hoy).inDays;
+
+    final double valorDiario = montoMensual / diasCiclo;
+
+    final double montoProrrateo = double.parse(
+      (valorDiario * diasProrrateo).toStringAsFixed(2),
+    );
 
     // ======================================================
-    // 🔵 REGLA DEL MÍNIMO → SI ES MENOR A 20 SE AGREGA EL MES COMPLETO
+    // REGLA DE LOS 20 SOLES (CORRECTA)
+    // NO SE ELIMINA → SE ACUMULA
     // ======================================================
+
     double montoFinal;
-    if (prorrateo < 20) {
-      montoFinal = prorrateo + montoCategoria;
+    double saldoPendiente = 0.0;
+
+    if (montoProrrateo < 20) {
+      montoFinal = montoMensual;
+      saldoPendiente = montoProrrateo;
     } else {
-      montoFinal = prorrateo;
+      montoFinal = montoProrrateo;
     }
 
     return {
-      "montoCategoria": montoCategoria,
-      "montoProrrateo": prorrateo,
+      "montoCategoria": montoMensual,
+      "montoProrrateo": montoProrrateo,
       "montoDescuento": 0.0,
       "montoFinal": montoFinal,
+      "saldoPendiente": saldoPendiente,
+      "inicioPeriodo": hoy,
+      "finPeriodo": finCicloActual,
     };
   }
 }

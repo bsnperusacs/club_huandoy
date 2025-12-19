@@ -1,84 +1,58 @@
-// =========================================
-//     PAGOS – Cloud Functions V2
-// =========================================
+// functions/pagos.js
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
-const mercadopago = require("mercadopago");
+const { MercadoPagoConfig, Preference } = require("mercadopago");
 
-// 🔐 SECRET DE FIREBASE
 const MP_ACCESS_TOKEN = defineSecret("MP_ACCESS_TOKEN");
 
-
-// =========================================
-// 🔵 CREAR PAGO (CHECKOUT)
-// =========================================
 exports.crearPago = onRequest(
   {
-    secrets: [MP_ACCESS_TOKEN], // << NECESARIO para usar secrets
+    secrets: [MP_ACCESS_TOKEN],
     cors: true,
     timeoutSeconds: 60,
   },
   async (req, res) => {
     try {
       const { estudianteId, monto, descripcion } = req.body;
+      const uid = req.headers.uid; // SE MANTIENE: YA LO ENVÍA FLUTTER
 
-      if (!estudianteId || !monto) {
-        return res.status(400).json({ error: "Datos incompletos." });
+      if (!uid || !estudianteId || !monto || monto <= 0) {
+        return res.status(400).json({ error: "DATOS INVALIDOS" });
       }
 
-      // Configurar SDK dentro de la función
-      mercadopago.configure({
-        access_token: MP_ACCESS_TOKEN.value(),
+      const client = new MercadoPagoConfig({
+        accessToken: MP_ACCESS_TOKEN.value(),
       });
 
-      const preference = await mercadopago.preferences.create({
-        items: [
-          {
-            title: descripcion || "Pago Club Huandoy",
-            quantity: 1,
-            currency_id: "PEN",
-            unit_price: Number(monto),
+      const preference = new Preference(client);
+
+      const result = await preference.create({
+        body: {
+          items: [
+            {
+              title: descripcion || "Pago Club Huandoy",
+              quantity: 1,
+              currency_id: "PEN",
+              unit_price: Number(monto),
+            },
+          ],
+          metadata: {
+            uid: uid,              // 🔧 EXPLÍCITO
+            estudianteId: estudianteId,
+            total: Number(monto),
           },
-        ],
-        metadata: { estudianteId },
+          notification_url:
+            "https://us-central1-clubdeportivohuandoy.cloudfunctions.net/mpWebhook",
+        },
       });
 
       return res.status(200).json({
-        init_point: preference.body.init_point,
-        id: preference.body.id,
+        init_point: result.init_point,
       });
-
     } catch (e) {
-      console.error("❌ Error creando pago:", e);
-      return res.status(500).json({ error: "Error interno" });
-    }
-  }
-);
-
-
-// =========================================
-// 🔵 WEBHOOK MERCADO PAGO
-// =========================================
-exports.mpWebhook = onRequest(
-  {
-    secrets: [MP_ACCESS_TOKEN],
-  },
-  async (req, res) => {
-    try {
-      const data = req.body;
-
-      console.log("📩 Webhook recibido:", data);
-
-      if (data.type === "payment") {
-        console.log("💰 Pago confirmado:", data.data.id);
-      }
-
-      return res.status(200).send("OK");
-
-    } catch (e) {
-      console.error("❌ Error webhook:", e);
-      return res.status(500).send("Error interno");
+      console.error("❌ CREAR PAGO ERROR", e);
+      return res.status(500).json({ error: "ERROR CREAR PAGO" });
     }
   }
 );

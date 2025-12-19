@@ -1,15 +1,11 @@
-// Pagos
-const { crearPago, mpWebhook } = require("./pagos");
+// index.js
 
-// Convenios
+const { crearPago } = require("./pagos");
+const { mpWebhook } = require("./webhooks");
 const { validarConvenio } = require("./convenios");
-
-// Tareas
 const { revisarAsistenciasMensuales } = require("./tareas_programadas");
-
 
 exports.crearPago = crearPago;
 exports.mpWebhook = mpWebhook;
 exports.validarConvenio = validarConvenio;
 exports.revisarAsistenciasMensuales = revisarAsistenciasMensuales;
-

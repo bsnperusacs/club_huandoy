@@ -349,6 +349,7 @@ class _PantallaFormularioEstudianteState
 
               if (ocupacion == "Estudiante") ...[
                 DropdownButtonFormField(
+                  isExpanded: true, // 🔥 CLAVE
                   value: institucion,
                   decoration: const InputDecoration(
                       labelText: "Institución educativa"),
