@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:club_huandoy/core/widgets/campo_texto_personalizado.dart';
-import 'package:club_huandoy/core/widgets/boton_personalizado.dart';
 
 // 👇 IMPORTA TU NUEVA PANTALLA
 import 'verificar_correo.dart';
@@ -135,11 +134,27 @@ class _PantallaRegistroState extends State<PantallaRegistro> {
 
                 const SizedBox(height: 24),
 
-                BotonPersonalizado(
-                  texto: "Registrarme",
-                  cargando: cargando,
-                  onPressed: _registrarUsuario,
-                ),
+SizedBox(
+  width: double.infinity,
+  height: 60,
+  child: ElevatedButton(
+    onPressed: cargando
+        ? null
+        : () {
+            if (_formKey.currentState!.validate()) {
+              _registrarUsuario();
+            }
+          },
+    child: cargando
+        ? const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : const Text("Registrarse"),
+  ),
+),
+
               ],
             ),
           ),

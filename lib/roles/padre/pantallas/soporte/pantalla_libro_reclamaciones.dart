@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
+import 'package:club_huandoy/core/theme/app_theme.dart';
+import 'package:club_huandoy/core/theme/colores.dart';
 
 class PantallaLibroReclamaciones extends StatefulWidget {
   const PantallaLibroReclamaciones({super.key});
@@ -51,9 +53,7 @@ class _PantallaLibroReclamacionesState
     setState(() => _enviando = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Reclamación enviada correctamente"),
-      ),
+      const SnackBar(content: Text("Reclamación enviada correctamente")),
     );
 
     Navigator.pop(context);
@@ -61,6 +61,8 @@ class _PantallaLibroReclamacionesState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Libro de Reclamaciones"),
@@ -72,48 +74,92 @@ class _PantallaLibroReclamacionesState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Libro de Reclamaciones Virtual",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Este formulario permite registrar reclamos o quejas "
-                "relacionadas con los servicios brindados por el "
-                "Club Deportivo Integral Huandoy. "
-                "La información será tratada de forma confidencial.",
-              ),
-              const SizedBox(height: 20),
-
-              _field(_nombreCtrl, "Nombre completo"),
-              _field(_correoCtrl, "Correo electrónico",
-                  TextInputType.emailAddress),
-              _field(_celularCtrl, "Celular", TextInputType.phone),
-              _field(_detalleCtrl, "Detalle del reclamo",
-                  TextInputType.multiline, 4),
-              _field(_pedidoCtrl, "Pedido o solución esperada",
-                  TextInputType.multiline, 3),
-
-              const SizedBox(height: 10),
-
-              Row(
-                children: [
-                  Checkbox(
-                    value: _acepto,
-                    onChanged: (v) => setState(() => _acepto = v ?? false),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      "Declaro que la información proporcionada es verídica.",
+              // ===== HEADER =====
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.headerGradient,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Libro de Reclamaciones Virtual",
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Registra reclamos o quejas relacionadas con los "
+                      "servicios del Club Deportivo Integral Huandoy. "
+                      "La información será tratada de forma confidencial.",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
+              // ===== FORM =====
+              _field(_nombreCtrl, "Nombre completo"),
+              _field(
+                _correoCtrl,
+                "Correo electrónico",
+                TextInputType.emailAddress,
+              ),
+              _field(
+                _celularCtrl,
+                "Celular",
+                TextInputType.phone,
+              ),
+              _field(
+                _detalleCtrl,
+                "Detalle del reclamo",
+                TextInputType.multiline,
+                4,
+              ),
+              _field(
+                _pedidoCtrl,
+                "Pedido o solución esperada",
+                TextInputType.multiline,
+                3,
+              ),
+
+              const SizedBox(height: 12),
+
+              // ===== DECLARACIÓN =====
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.grisSuave,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: _acepto,
+                      onChanged: (v) => setState(() => _acepto = v ?? false),
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Declaro que la información proporcionada es verídica.",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ===== BOTÓN =====
               SizedBox(
                 width: double.infinity,
+                height: 56,
                 child: _enviando
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton.icon(
@@ -136,14 +182,14 @@ class _PantallaLibroReclamacionesState
     int maxLines = 1,
   ]) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
         controller: controller,
         keyboardType: type,
         maxLines: maxLines,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-        ).copyWith(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+        ),
         validator: (v) =>
             v == null || v.isEmpty ? "Campo obligatorio" : null,
       ),

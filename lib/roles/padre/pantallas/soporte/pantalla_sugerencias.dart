@@ -29,61 +29,61 @@ class _PantallaSugerenciasState extends State<PantallaSugerencias> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Sugerencias")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Queremos mejorar para ti",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Tu opinión es muy importante para nosotros. "
-              "Creemos que la mejor forma de mejorar es escuchándote.\n\n"
-              "Por favor, déjanos tus sugerencias llenando el siguiente formulario. "
-              "Esto nos ayudará a mejorar la comunicación, los servicios y la experiencia dentro del club.",
-              style: TextStyle(fontSize: 15),
-            ),
-            const SizedBox(height: 20),
-
-            Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  TextFormField(
-                    controller: nombreCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Tu nombre",
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? "Campo obligatorio" : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: mensajeCtrl,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: "Escribe tu sugerencia",
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? "Campo obligatorio" : null,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: _enviar,
-                    icon: const Icon(Icons.send),
-                    label: const Text("Enviar sugerencia"),
-                  ),
-                ],
+        child: Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Queremos escucharte",
+                style: theme.textTheme.titleLarge,
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                "Tu opinión es importante para mejorar los servicios "
+                "y la experiencia dentro del club.",
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+
+              TextFormField(
+                controller: nombreCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Tu nombre",
+                ),
+                validator: (v) =>
+                    v == null || v.isEmpty ? "Campo obligatorio" : null,
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: mensajeCtrl,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: "Escribe tu sugerencia",
+                ),
+                validator: (v) =>
+                    v == null || v.isEmpty ? "Campo obligatorio" : null,
+              ),
+              const SizedBox(height: 28),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: _enviar,
+                  icon: const Icon(Icons.send),
+                  label: const Text("Enviar sugerencia"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // Widgets
 import 'package:club_huandoy/core/widgets/campo_texto_personalizado.dart';
-import 'package:club_huandoy/core/widgets/boton_personalizado.dart';
 
 // Servicio
 import 'package:club_huandoy/core/servicios/servicio_autenticacion.dart';
@@ -75,19 +74,27 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
                   const SizedBox(height: 24),
 
-                  SizedBox(
-                    width: 200,
-                    height: 60,
-                    child: BotonPersonalizado(
-                      texto: "Iniciar Sesión",
-                      cargando: cargando,
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _iniciarSesion();
-                        }
-                      },
-                    ),
-                  ),
+SizedBox(
+  width: 200,
+  height: 60,
+  child: ElevatedButton(
+    onPressed: cargando
+        ? null
+        : () {
+            if (_formKey.currentState!.validate()) {
+              _iniciarSesion();
+            }
+          },
+    child: cargando
+        ? const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : const Text("Iniciar Sesión"),
+  ),
+),
+
 
                   const SizedBox(height: 20),
 

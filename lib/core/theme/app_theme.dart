@@ -1,13 +1,8 @@
-// lib/core/theme/app_theme.dart
-
 import 'package:flutter/material.dart';
 import 'colores.dart';
 
 class AppTheme {
-
-  /// ============================================================
-  /// GRADIENT GLOBAL — Verde + Celeste institucional
-  /// ============================================================
+  /// GRADIENTE INSTITUCIONAL
   static const LinearGradient headerGradient = LinearGradient(
     colors: [
       AppColors.verde,
@@ -17,14 +12,12 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
-  /// ============================================================
   /// TEMA PRINCIPAL
-  /// ============================================================
   static ThemeData light = ThemeData(
     useMaterial3: true,
 
+    scaffoldBackgroundColor: AppColors.grisSuave,
     primaryColor: AppColors.verde,
-    scaffoldBackgroundColor: Colors.white,
 
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.verde,
@@ -32,47 +25,72 @@ class AppTheme {
       secondary: AppColors.celeste,
     ),
 
-    /// ============================================================
-    /// INPUTS — Campos de texto bonitos, globales
-    /// ============================================================
+    /// TEXTOS GLOBALES
+    textTheme: const TextTheme(
+      titleLarge: TextStyle(
+        fontWeight: FontWeight.bold,
+        color: AppColors.textoOscuro,
+      ),
+      titleMedium: TextStyle(
+        fontWeight: FontWeight.w600,
+        color: AppColors.textoOscuro,
+      ),
+      bodyMedium: TextStyle(
+        color: AppColors.textoOscuro,
+      ),
+      bodySmall: TextStyle(
+        color: AppColors.textoOscuro,
+      ),
+    ),
+
+    /// INPUTS
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.celeste.withOpacity(0.15),
-
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
-
       prefixIconColor: AppColors.verde,
-
       labelStyle: const TextStyle(
         fontWeight: FontWeight.w600,
         color: AppColors.textoOscuro,
       ),
     ),
 
-    /// ============================================================
-    /// BOTONES ELEVATEDBUTTON
-    /// ============================================================
+            cardTheme: CardThemeData(
+              color: AppColors.blanco,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+
+
+    /// BOTONES
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.verde,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.blanco,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+        padding: const EdgeInsets.symmetric(vertical: 14),
       ),
     ),
 
-    /// ============================================================
-    /// FLOATING ACTION BUTTON
-    /// ============================================================
+    /// APPBAR
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.verde,
+      foregroundColor: Colors.white,
+      centerTitle: true,
+      elevation: 0,
+    ),
+
+    /// FAB
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: AppColors.verde,
       foregroundColor: Colors.white,
-      shape: StadiumBorder(),
     ),
   );
 }

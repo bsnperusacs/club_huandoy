@@ -40,7 +40,7 @@ dependencies:
   http: ^1.1.0                           # Consumo de APIs externas
   intl: ^0.20.2                          # Fechas, números, formatos regionales
   url_launcher: ^6.3.2                   # Abrir URLs, WhatsApp, llamadas, etc.
-
+  android_intent_plus: ^5.3.0
   # ============================================================
   # === GEOLOCALIZACIÓN ========================================
   # ============================================================
