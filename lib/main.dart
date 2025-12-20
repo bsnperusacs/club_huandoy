@@ -1,34 +1,51 @@
 // 📁 lib/main.dart
 import 'package:flutter/material.dart';
+
 // ================= FIREBASE =================
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 // ================= LOCALIZACIÓN =================
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 // ================= PROVIDER =================
 import 'package:provider/provider.dart';
 import 'package:club_huandoy/core/providers/carrito_asignacion_provider.dart';
+
 // ================= THEME =================
 import 'core/theme/app_theme.dart';
+
 // ================= AUTH =================
 import 'autenticacion/pantalla_login.dart';
 import 'autenticacion/pantalla_registro.dart';
 import 'autenticacion/pantalla_recuperar.dart';
 import 'autenticacion/verificar_correo.dart';
+
 // ================= GENERALES =================
 import 'pantalla_inicio.dart';
 import 'pantalla_feedback.dart';
+
 // ================= PADRE =================
 import 'roles/padre/pantallas/matricula/pantalla_matricular_estudiante.dart';
 import 'roles/padre/pantallas/pantalla_registro_padre.dart';
 import 'roles/padre/pantallas/estudiantes_registrados.dart';
 import 'roles/padre/pantallas/pago/pantalla_pagar_carrito.dart';
+
+// ====== PADRE / EN DESARROLLO ======
+import 'roles/padre/pantallas/estudiantes/pantalla_perfil_estudiante.dart';
+import 'roles/padre/pantallas/tienda/pantalla_tienda_club.dart';
+import 'roles/padre/pantallas/torneos/pantalla_torneos.dart';
+import 'roles/padre/pantallas/historial/pantalla_historial_pagos.dart';
+import 'roles/padre/pantallas/historial/pantalla_historial_compras.dart';
+import 'roles/padre/pantallas/historial/pantalla_asistencia.dart';
+
 // ================= SOPORTE =================
 import 'roles/padre/pantallas/soporte/pantalla_soporte.dart';
 import 'roles/padre/pantallas/soporte/pantalla_contacto.dart';
 import 'roles/padre/pantallas/soporte/pantalla_sugerencias.dart';
 import 'roles/padre/pantallas/soporte/pantalla_libro_reclamaciones.dart';
+
 // ================= ADMIN =================
 import 'roles/admin/pantalla_admin_home.dart';
 import 'roles/admin/pantallas/disciplinas/admin_lista_disciplinas.dart';
@@ -79,51 +96,77 @@ class ClubHuandoyApp extends StatelessWidget {
 
         initialRoute: '/',
         routes: {
-          // ================= CONTROL =================
           '/': (context) => const PantallaControl(),
 
-          // ================= AUTH =================
+          // AUTH
           '/login': (context) => const PantallaLogin(),
           '/registro': (context) => const PantallaRegistro(),
           '/recuperar': (context) => const PantallaRecuperar(),
-          '/verificarCorreo': (context) => const PantallaVerificarCorreo(),
+          '/verificarCorreo': (context) =>
+              const PantallaVerificarCorreo(),
 
-          // ================= GENERALES =================
+          // GENERALES
           '/inicio': (context) => const PantallaInicio(),
           '/feedback': (context) => const PantallaFeedback(),
 
-          // ================= PADRE =================
-          '/registroPadre': (context) => const PantallaRegistroPadre(),
-          '/matricula': (context) => const PantallaMatriculaEstudiante(),
-          '/estudiantesRegistrados': (context) => const EstudiantesRegistrados(),
+          // PADRE
+          '/registroPadre': (context) =>
+              const PantallaRegistroPadre(),
+          '/matricula': (context) =>
+              const PantallaMatriculaEstudiante(),
+          '/estudiantesRegistrados': (context) =>
+              const EstudiantesRegistrados(),
+          '/perfilEstudiante': (context) =>
+              const PantallaPerfilEstudiante(),
+          '/tiendaClub': (context) =>
+              const PantallaTiendaClub(),
 
-          // ================= PAGOS =================
-          '/pagarCarrito': (context) => const PantallaPagarCarrito(),
+          // TORNEOS
+          '/torneos': (context) => const PantallaTorneos(),
 
-          // ================= SOPORTE =================
+          // HISTORIAL
+          '/historialPagos': (context) =>
+              const PantallaHistorialPagos(),
+          '/historialCompras': (context) =>
+              const PantallaHistorialCompras(),
+          '/asistencia': (context) =>
+              const PantallaAsistencia(),
+
+          // PAGOS
+          '/pagarCarrito': (context) =>
+              const PantallaPagarCarrito(),
+
+          // SOPORTE
           '/soporte': (context) => const PantallaSoporte(),
-          '/soporteContacto': (context) => const PantallaContacto(),
-          '/soporteSugerencias': (context) => PantallaSugerencias(),
+          '/soporteContacto': (context) =>
+              const PantallaContacto(),
+          '/soporteSugerencias': (context) =>
+              PantallaSugerencias(),
           '/soporteReclamaciones': (context) =>
               const PantallaLibroReclamaciones(),
 
-          // ================= ADMIN =================
+          // ADMIN
           '/adminHome': (context) => PantallaAdminHome(),
-
-          '/adminDisciplinas': (context) => AdminListaDisciplinas(),
-          '/adminCrearDisciplina': (context) => AdminCrearDisciplina(),
-
-          '/adminEntrenadores': (context) => AdminListaEntrenadores(),
-          '/adminCrearEntrenador': (context) => AdminCrearEntrenador(),
-
-          '/adminGrupos': (context) => AdminListaGrupos(),
-          '/adminCrearGrupo': (context) => AdminCrearGrupo(),
-
-          '/adminHorarios': (context) => AdminListaHorarios(),
-          '/adminCrearHorario': (context) => AdminCrearHorario(),
-
-          '/adminConvenios': (context) => AdminListaConvenios(),
-          '/adminCrearConvenio': (context) => AdminCrearConvenio(),
+          '/adminDisciplinas': (context) =>
+              AdminListaDisciplinas(),
+          '/adminCrearDisciplina': (context) =>
+              AdminCrearDisciplina(),
+          '/adminEntrenadores': (context) =>
+              AdminListaEntrenadores(),
+          '/adminCrearEntrenador': (context) =>
+              AdminCrearEntrenador(),
+          '/adminGrupos': (context) =>
+              AdminListaGrupos(),
+          '/adminCrearGrupo': (context) =>
+              AdminCrearGrupo(),
+          '/adminHorarios': (context) =>
+              AdminListaHorarios(),
+          '/adminCrearHorario': (context) =>
+              AdminCrearHorario(),
+          '/adminConvenios': (context) =>
+              AdminListaConvenios(),
+          '/adminCrearConvenio': (context) =>
+              AdminCrearConvenio(),
         },
       ),
     );
@@ -131,14 +174,16 @@ class ClubHuandoyApp extends StatelessWidget {
 }
 
 // ===============================
-// 🔒 CONTROL SESIÓN + ROL
+// CONTROL SESIÓN + ROL
 // ===============================
 class PantallaControl extends StatelessWidget {
   const PantallaControl({super.key});
 
   Future<String> _leerRol(String uid) async {
-    final snap =
-        await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+    final snap = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(uid)
+        .get();
     return snap.data()?['rol'] ?? 'padre';
   }
 
@@ -147,7 +192,8 @@ class PantallaControl extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -168,7 +214,8 @@ class PantallaControl extends StatelessWidget {
           builder: (context, snap) {
             if (!snap.hasData) {
               return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+                body: Center(
+                    child: CircularProgressIndicator()),
               );
             }
 

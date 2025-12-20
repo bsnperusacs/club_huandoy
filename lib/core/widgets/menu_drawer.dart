@@ -47,7 +47,7 @@ class MenuDrawer extends StatelessWidget {
                 context,
                 icon: Icons.person,
                 text: "Perfil del estudiante",
-                onTap: () {}, // luego
+                onTap: () => _go(context, '/perfilEstudiante'),
               ),
             ],
           ),
@@ -86,6 +86,13 @@ class MenuDrawer extends StatelessWidget {
 
           _item(
             context,
+            icon: Icons.store,
+            text: "Tienda del Club",
+            onTap: () => _go(context, '/tiendaClub'),
+          ),
+
+          _item(
+            context,
             icon: Icons.support_agent,
             text: "Soporte y Ayuda",
             onTap: () => _go(context, '/soporte'),
@@ -100,7 +107,10 @@ class MenuDrawer extends StatelessWidget {
             onTap: () async {
               await FirebaseAuth.instance.signOut();
               Navigator.pushNamedAndRemoveUntil(
-                  context, '/login', (_) => false);
+                context,
+                '/login',
+                (_) => false,
+              );
             },
           ),
         ],
@@ -134,6 +144,7 @@ class MenuDrawer extends StatelessWidget {
     return ListTile(
       leading: Icon(icon),
       title: Text(text),
+      // 🔒 Mantiene bloqueo SOLO en items grandes si el perfil está incompleto
       onTap: perfilIncompleto ? onPerfilIncompleto : onTap,
     );
   }
@@ -145,7 +156,10 @@ class MenuDrawer extends StatelessWidget {
   }) {
     return ExpansionTile(
       leading: Icon(icon),
-      title: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       children: children,
     );
   }
@@ -160,12 +174,13 @@ class MenuDrawer extends StatelessWidget {
       contentPadding: const EdgeInsets.only(left: 40),
       leading: Icon(icon, size: 20),
       title: Text(text),
-      onTap: perfilIncompleto ? onPerfilIncompleto : onTap,
+      // ✅ SIN BLOQUEO: los subitems SIEMPRE navegan
+      onTap: onTap,
     );
   }
 
   void _go(BuildContext context, String route) {
-    Navigator.pop(context);
+    Navigator.pop(context); // cierra drawer
     Navigator.pushNamed(context, route);
   }
 }

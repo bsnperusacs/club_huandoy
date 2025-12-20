@@ -1,15 +1,14 @@
 name: club_huandoy
 description: "App Club Deportivo Integral Huandoy"
 publish_to: 'none'
-version: 1.0.4+5
+version: 1.0.6+7
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-
   # ============================================================
-  # === FLUTTER BASE (núcleo del framework + localización) ====
+  # === FLUTTER BASE ===========================================
   # ============================================================
   flutter:
     sdk: flutter
@@ -20,67 +19,75 @@ dependencies:
   # ============================================================
   # === ÍCONOS Y DISEÑO ========================================
   # ============================================================
-  cupertino_icons: ^1.0.8               # Iconografía estilo iOS
-  font_awesome_flutter: ^10.7.0         # Iconos FontAwesome
+  cupertino_icons: ^1.0.8
+  font_awesome_flutter: ^10.7.0
+  google_fonts: ^6.3.3
 
   # ============================================================
-  # === FIREBASE (Backend principal) ===========================
+  # === FIREBASE ===============================================
   # ============================================================
-  firebase_core: ^3.5.0                 # Inicialización de Firebase
-  firebase_auth: ^5.3.1                 # Autenticación: email, Google, Facebook, etc.
-  cloud_firestore: ^5.4.4               # Base de datos en tiempo real
-  firebase_storage: ^12.3.0             # Subida de imágenes y archivos
-  firebase_messaging: ^15.1.1           # Notificaciones push
-  cloud_functions: ^5.6.2               # Funciones serverless (Cloud Functions)
-  provider: ^6.0.5                      # Gestión de estado recomendada por Flutter
+  firebase_core: ^3.5.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.0
+  firebase_messaging: ^15.1.1
+  cloud_functions: ^5.6.2
+  provider: ^6.0.5
 
   # ============================================================
-  # === HTTP / UTILIDADES GENERALES ============================
+  # === HTTP / UTILIDADES ======================================
   # ============================================================
-  http: ^1.1.0                           # Consumo de APIs externas
-  intl: ^0.20.2                          # Fechas, números, formatos regionales
-  url_launcher: ^6.3.2                   # Abrir URLs, WhatsApp, llamadas, etc.
+  http: ^1.1.0
+  intl: ^0.20.2
+  url_launcher: ^6.3.2
   android_intent_plus: ^5.3.0
+  uuid: ^4.3.3
+  path: ^1.9.1
+
   # ============================================================
   # === GEOLOCALIZACIÓN ========================================
   # ============================================================
-  geolocator: ^10.1.0                    # GPS, ubicación actual
-  geocoding: ^3.0.0                      # Convertir coordenadas ↔ direcciones
+  geolocator: ^10.1.0
+  geocoding: ^3.0.0
 
   # ============================================================
   # === AUTENTICACIÓN SOCIAL ==================================
   # ============================================================
-  google_sign_in: ^6.2.1                 # Login con Google
+  google_sign_in: ^6.2.1
 
   # ============================================================
-  # === ARCHIVOS / FECHAS / UTILIDADES EXTRA ==================
+  # === ARCHIVOS / IMÁGENES / CÁMARA ===========================
   # ============================================================
-  image_picker: ^1.1.2                   # Tomar fotos o elegir imágenes
-  file_picker: ^8.1.2                    # Seleccionar archivos del dispositivo
-  flutter_datetime_picker_plus: ^2.2.0   # Selector de fechas personalizado
-  uuid: ^4.3.3                           # Generación de IDs únicas
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
+  image: ^4.1.3
+  camera: ^0.11.0+2
+  webview_flutter: ^4.13.0
+  flutter_tesseract_ocr: ^0.4.30
+  flutter_datetime_picker_plus: ^2.2.0
 
   # ============================================================
-  # === WEBVIEW / OCR / IMAGEN / CÁMARA ========================
+  # === UTILIDADES INTERNAS ====================================
   # ============================================================
-  webview_flutter: ^4.13.0               # Navegador web dentro del app
-  flutter_tesseract_ocr: ^0.4.30         # Reconocimiento de texto (OCR)
-  image: ^4.1.3                          # Manipulación de imágenes
-  camera: ^0.11.0+2                      # Acceso avanzado a la cámara
-  dtd: ^4.0.0
   flutter_lints: ^6.0.0
-  google_fonts: ^6.3.3
-  json_rpc_2: ^4.0.0
-  path: ^1.9.1
   stack_trace: ^1.12.1
   web: ^1.1.1
+  dtd: ^4.0.0
+  json_rpc_2: ^4.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  flutter_launcher_icons: ^0.14.1
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/imagenes/Logo_huandoy.png
+    
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
