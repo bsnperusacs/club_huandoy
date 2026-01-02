@@ -19,7 +19,7 @@ exports.mpWebhook = onRequest(
         return res.status(200).send("NO PAYMENT ID");
       }
 
-      // 🔐 Verificar pago real en Mercado Pago
+      // Verificar pago en Mercado Pago
       const mpRes = await fetch(
         `https://api.mercadopago.com/v1/payments/${paymentId}`,
         {
@@ -34,28 +34,34 @@ exports.mpWebhook = onRequest(
         return res.status(200).send("NOT APPROVED");
       }
 
-      const { uid, total } = pago.metadata || {};
-      if (!uid) {
-        return res.status(200).send("METADATA UID MISSING");
+      // Extraer metadata y external_reference
+      const uid = pago.metadata?.uid;
+      const total = pago.metadata?.total ?? 0;
+      const externalReference =
+        pago.external_reference || pago.metadata?.externalReference || null;
+
+      if (!uid || !externalReference) {
+        return res.status(200).send("MISSING UID OR EXTERNAL_REFERENCE");
       }
 
-      // 🔁 Evitar reprocesar el mismo pago
+      // Evitar reprocesar
       const pagoRef = db.collection("pagos").doc(paymentId.toString());
       const pagoSnap = await pagoRef.get();
       if (pagoSnap.exists) {
         return res.status(200).send("ALREADY PROCESSED");
       }
 
-      // 💾 Guardar pago (resumen)
+      // Guardar pago (CLAVE: external_reference)
       await pagoRef.set({
         uid,
         total,
-        paymentId,
+        paymentId: paymentId.toString(),
+        external_reference: externalReference,
         estado: "aprobado",
         creadoEn: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // 📦 Leer carrito COMPLETO
+      // Leer carrito
       const carritoSnap = await db
         .collection("carritos")
         .doc(uid)
@@ -68,14 +74,12 @@ exports.mpWebhook = onRequest(
 
       const batch = db.batch();
 
-      // 🧾 HISTORIAL DETALLADO (1 DOC POR ITEM)
       carritoSnap.docs.forEach((doc) => {
         const item = doc.data();
 
         const historialRef = db.collection("historial").doc();
-
         batch.set(historialRef, {
-          uid: uid,
+          uid,
           padreId: item.padreId || uid,
           estudianteId: item.estudianteId || null,
           nombreCompleto: item.nombreCompleto || "",
@@ -92,10 +96,22 @@ exports.mpWebhook = onRequest(
           montoFinal: item.montoFinal || 0,
 
           paymentId: paymentId.toString(),
+          external_reference: externalReference,
           fecha: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        // 🧹 Marcar para borrar item del carrito
+        if (item.estudianteId) {
+          const estudianteRef = db
+            .collection("estudiantes")
+            .doc(item.estudianteId);
+
+          batch.update(estudianteRef, {
+            estado: "matriculado",
+            matriculaPagada: true,
+            fechaPago: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+
         batch.delete(doc.ref);
       });
 

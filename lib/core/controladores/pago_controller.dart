@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PagoController {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -44,10 +45,12 @@ class PagoController {
     try {
       await doc.set({
         "id": doc.id,
+        "uid": FirebaseAuth.instance.currentUser!.uid,
         "fecha": FieldValue.serverTimestamp(),
         "estado": "pagado",
         "estudianteId": estudianteId,
         "grupoId": grupoId,
+
 
         // MONTOS
         "montoCategoria": datos["montoCategoria"],
@@ -61,9 +64,12 @@ class PagoController {
 
       // Actualizar estado del estudiante
       await db.collection("estudiantes").doc(estudianteId).update({
-        "estado": "pagado",
+        "estado": "matriculado",
+        "matriculaPagada": true,
+        "fechaPago": FieldValue.serverTimestamp(),
         "grupoId": grupoId,
       });
+
 
     } catch (e) {
       print("❌ registrarPago ERROR: $e");

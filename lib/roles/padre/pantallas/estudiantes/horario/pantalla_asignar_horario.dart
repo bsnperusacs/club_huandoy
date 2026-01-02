@@ -5,8 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/modelos/estudiante_model.dart';
-import '../../../core/controladores/prorrateo_controller.dart';
+import '../../../../../core/modelos/estudiante_model.dart';
+import '../../../../../core/controladores/prorrateo_controller.dart';
 import 'package:club_huandoy/core/providers/carrito_asignacion_provider.dart';
 
 class PantallaAsignarHorario extends StatefulWidget {
@@ -142,14 +142,13 @@ class _PantallaAsignarHorarioState extends State<PantallaAsignarHorario> {
   }
 
   // ==========================================================
-  // CONFIRMAR Y GUARDAR (MISMA UI + GUARDA EN FIRESTORE CARRITO)
+  // CONFIRMAR Y GUARDAR
   // ==========================================================
   Future<void> confirmarYGuardar() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final carritoProvider =
         Provider.of<CarritoAsignacionProvider>(context, listen: false);
 
-    // ---------- ASEGURAR CARRITO EN FIRESTORE ----------
     final carritoRef = db.collection("carritos").doc(uid);
 
     await carritoRef.set({
@@ -159,8 +158,16 @@ class _PantallaAsignarHorarioState extends State<PantallaAsignarHorario> {
       "fechaActualizacion": FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
 
-    // ---------- ITEM DEL CARRITO ----------
     final itemRef = carritoRef.collection("items").doc();
+
+    final horarioTexto =
+        "${horarioSel!["dias"].join(" - ")} ${horarioSel!["horaInicio"]} - ${horarioSel!["horaFin"]}";
+
+    final grupoNombre =
+        "$disciplinaNombre – ${grupoSel!["categoria"]} – Sección ${grupoSel!["seccion"]}";
+
+    final entrenadorNombre =
+        "${entrenadorSel?["nombres"] ?? ""} ${entrenadorSel?["apellidos"] ?? ""}".trim();
 
     final itemData = {
       "itemId": itemRef.id,
@@ -175,8 +182,7 @@ class _PantallaAsignarHorarioState extends State<PantallaAsignarHorario> {
       "grupoId": grupoSel!.id,
       "horarioId": horarioSel!.id,
       "entrenadorId": entrenadorSel?.id,
-      "horarioTexto":
-          "${horarioSel!["dias"].join(" - ")} ${horarioSel!["horaInicio"]} - ${horarioSel!["horaFin"]}",
+      "horarioTexto": horarioTexto,
       "montoCategoria": montoCategoria,
       "montoProrrateo": montoProrrateo,
       "montoDescuento": montoDescuento,
@@ -185,23 +191,29 @@ class _PantallaAsignarHorarioState extends State<PantallaAsignarHorario> {
     };
 
     await itemRef.set(itemData);
-
-    // ---------- PROVIDER (UI) ----------
     carritoProvider.agregar(itemData);
 
-    // ---------- ACTUALIZAR ESTUDIANTE ----------
+    // 🔥 AQUÍ ESTABA EL PROBLEMA → AHORA SE GUARDAN LOS NOMBRES
     await db.collection("estudiantes").doc(widget.estudiante.id).update({
       "estado": "pendiente_pago",
+
       "disciplinaId": disciplinaId,
       "disciplinaNombre": disciplinaNombre,
+
       "categoria": categoriaSeleccionada,
+
       "grupoId": grupoSel!.id,
+      "grupoNombre": grupoNombre,
+
       "horarioId": horarioSel!.id,
+      "horarioNombre": horarioTexto,
+
       "entrenadorId": entrenadorSel?.id,
+      "entrenadorNombre": entrenadorNombre,
+
       "fechaAsignacion": FieldValue.serverTimestamp(),
     });
 
-    // ---------- CONTADOR GRUPO ----------
     await db.collection("grupos").doc(grupoSel!.id).update({
       "inscritos": FieldValue.increment(1),
     });

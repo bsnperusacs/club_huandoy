@@ -1,37 +1,28 @@
+// lib/core/controladores/asignar_horario_controller.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AsignacionHorarioController {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// =====================================================
-  /// 🔍 VALIDAR SI EL ESTUDIANTE YA TIENE ESTADO ASIGNADO
-  /// =====================================================
   Future<void> validarEstadoEstudiante(String estudianteId) async {
     final doc = await _db.collection('estudiantes').doc(estudianteId).get();
-
     if (!doc.exists) throw "El estudiante no existe.";
 
     final estado = doc.data()!['estado'] ?? 'registrado';
-
     if (estado == "asignado") {
       throw "Este estudiante ya tiene un horario asignado.";
     }
-
     if (estado == "pagado") {
       throw "Este estudiante ya completó el proceso de pago.";
     }
   }
 
-  /// =====================================================
-  /// 🔍 VALIDAR CUPOS DEL GRUPO (según tu estructura real)
-  /// =====================================================
   Future<void> validarCupos(String grupoId) async {
     final doc = await _db.collection('grupos').doc(grupoId).get();
-
     if (!doc.exists) throw "El grupo no existe.";
 
     final data = doc.data()!;
-    final int cupoMax = data['cupoMaximo'] ?? 0; // <-- así está en tu Firestore
+    final int cupoMax = data['cupoMaximo'] ?? 0;
     final int inscritos = data['inscritos'] ?? 0;
 
     if (inscritos >= cupoMax) {
@@ -39,68 +30,69 @@ class AsignacionHorarioController {
     }
   }
 
-  /// =====================================================
-  /// 🔍 VALIDACIÓN DE EDAD (opcional por ahora)
-  /// =====================================================
-  Future<void> validarEdad(String estudianteId, String categoria) async {
-    // pendiente – no requerido ahora
-    return;
-  }
-
-  /// =====================================================
-  /// 🎯 OBTENER INFORMACIÓN COMPLETA DEL GRUPO
-  /// =====================================================
-  Future<Map<String, dynamic>> obtenerGrupo(String grupoId) async {
-    final doc = await _db.collection('grupos').doc(grupoId).get();
-    if (!doc.exists) throw "El grupo no existe.";
-    return doc.data()!;
-  }
-
-  /// =====================================================
-  /// 🎯 OBTENER INFORMACIÓN DE LA DISCIPLINA (para precio)
-  /// =====================================================
-  Future<Map<String, dynamic>> obtenerDisciplina(String disciplinaId) async {
-    final doc = await _db.collection('disciplinas').doc(disciplinaId).get();
-    if (!doc.exists) throw "La disciplina no existe.";
-    return doc.data()!;
-  }
-
-  /// =====================================================
-  /// 🎯 PROCESO PRINCIPAL — SOLO PREPARA DATOS
-  /// =====================================================
   Future<Map<String, dynamic>> prepararAsignacion({
     required String estudianteId,
     required String disciplinaId,
+    required String disciplinaNombre,
     required String categoria,
     required String grupoId,
   }) async {
-    // 1. Validaciones
     await validarEstadoEstudiante(estudianteId);
     await validarCupos(grupoId);
-    await validarEdad(estudianteId, categoria);
 
-    // 2. Carga de datos del grupo
-    final grupo = await obtenerGrupo(grupoId);
+    // ===== GRUPO =====
+    final grupoDoc = await _db.collection('grupos').doc(grupoId).get();
+    if (!grupoDoc.exists) throw "El grupo no existe.";
+    final grupo = grupoDoc.data()!;
+
+    final String grupoNombre =
+        "Grupo ${grupo['categoria']} ${grupo['seccion']}";
 
     final String horarioId = grupo['horarioId'];
     final String entrenadorId = grupo['entrenadorId'];
+
+    // ===== HORARIO =====
+    final horarioDoc =
+        await _db.collection('horarios').doc(horarioId).get();
+    if (!horarioDoc.exists) throw "El horario no existe.";
+    final horario = horarioDoc.data()!;
+
+    final List dias = horario['dias'] ?? [];
+    final String diasTexto = dias.join(', ');
+    final String horaInicio = horario['horaInicio'] ?? '';
+    final String horaFin = horario['horaFin'] ?? '';
+    final String lugar = horario['lugar'] ?? '';
+
+    final String horarioNombre =
+        "$diasTexto | $horaInicio - $horaFin | $lugar";
+
+    // ===== ENTRENADOR =====
+    final entrenadorDoc =
+        await _db.collection('entrenadores').doc(entrenadorId).get();
+    if (!entrenadorDoc.exists) throw "El entrenador no existe.";
+    final entrenador = entrenadorDoc.data()!;
+
+    final String entrenadorNombre =
+        "${entrenador['nombres']} ${entrenador['apellidos']}";
+
     final DateTime fechaInicioClases =
         (grupo['fechaInicioClases'] as Timestamp).toDate();
 
-    // 3. Cargar disciplina (precio por categoría)
-    final disciplina = await obtenerDisciplina(disciplinaId);
-    final Map precios = disciplina['precios'] ?? {};
-    final double montoCategoria = (precios[categoria] ?? 0).toDouble();
-
-    // 4. Devolver información consolidada (NO guarda nada)
     return {
       "disciplinaId": disciplinaId,
-      "categoriaId": categoria,
+      "disciplinaNombre": disciplinaNombre,
+      "categoria": categoria,
+
       "grupoId": grupoId,
+      "grupoNombre": grupoNombre,
+
       "horarioId": horarioId,
+      "horarioNombre": horarioNombre,
+
       "entrenadorId": entrenadorId,
+      "entrenadorNombre": entrenadorNombre,
+
       "fechaInicioClases": fechaInicioClases,
-      "montoCategoria": montoCategoria,
     };
   }
 }

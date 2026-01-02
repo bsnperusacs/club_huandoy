@@ -47,7 +47,7 @@ class MenuDrawer extends StatelessWidget {
                 context,
                 icon: Icons.person,
                 text: "Perfil del estudiante",
-                onTap: () => _go(context, '/perfilEstudiante'),
+                onTap: () => _go(context, '/listaPerfilEstudiantes'),
               ),
             ],
           ),
@@ -95,6 +95,7 @@ class MenuDrawer extends StatelessWidget {
             context,
             icon: Icons.support_agent,
             text: "Soporte y Ayuda",
+            bloquearPorPerfil: false, // 🔓 LIBERADO
             onTap: () => _go(context, '/soporte'),
           ),
 
@@ -104,6 +105,7 @@ class MenuDrawer extends StatelessWidget {
             context,
             icon: Icons.logout,
             text: "Cerrar sesión",
+            bloquearPorPerfil: false, // 🔓 CLAVE
             onTap: () async {
               await FirebaseAuth.instance.signOut();
               Navigator.pushNamedAndRemoveUntil(
@@ -135,19 +137,22 @@ class MenuDrawer extends StatelessWidget {
     );
   }
 
-  Widget _item(
-    BuildContext context, {
-    required IconData icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(text),
-      // 🔒 Mantiene bloqueo SOLO en items grandes si el perfil está incompleto
-      onTap: perfilIncompleto ? onPerfilIncompleto : onTap,
-    );
-  }
+        Widget _item(
+          BuildContext context, {
+          required IconData icon,
+          required String text,
+          required VoidCallback onTap,
+          bool bloquearPorPerfil = true,
+        }) {
+          return ListTile(
+            leading: Icon(icon),
+            title: Text(text),
+            onTap: (perfilIncompleto && bloquearPorPerfil)
+                ? onPerfilIncompleto
+                : onTap,
+          );
+        }
+
 
   Widget _grupo({
     required IconData icon,

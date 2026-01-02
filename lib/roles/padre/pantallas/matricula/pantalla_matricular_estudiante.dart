@@ -52,42 +52,44 @@ class _PantallaMatriculaEstudianteState
   // ============================================================
   // SOLO GUARDA ESTUDIANTE (NO CARRITO, NO MATRÍCULA)
   // ============================================================
-  Future<void> guardarEstudiante(Map<String, dynamic> data) async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final dni = data["dni"];
-    final firestore = FirebaseFirestore.instance;
+Future<void> guardarEstudiante(Map<String, dynamic> data) async {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+  final dni = data["dni"];
+  final firestore = FirebaseFirestore.instance;
 
-    final existe =
-        await firestore.collection("estudiantes").doc(dni).get();
+  final existe =
+      await firestore.collection("estudiantes").doc(dni).get();
 
-    if (existe.exists) return;
-
-    String fotoUrl = "";
-    if (data["imagenFile"] != null) {
-      fotoUrl = await subirFoto(dni, data["imagenFile"]);
-    }
-
-    await firestore.collection("estudiantes").doc(dni).set({
-      "id": dni,
-      "padreId": uid,
-      "nombre": data["nombre"],
-      "apellido": data["apellido"],
-      "dni": dni,
-      "fechaNacimiento": data["fechaNacimiento"],
-      "genero": data["genero"],
-      "celular": data["celular"],
-      "fotoUrl": fotoUrl,
-      "ocupacion": data["ocupacion"],
-      "institucion": data["institucion"],
-      "grado": data["grado"],
-      "centroTrabajo": data["centroTrabajo"],
-      "estado": "registrado",
-      "matriculaPagada": false,
-      "fechaMatricula": DateTime.now(),
-      "activo": true,
-    });
+  // 🔥 CLAVE: si existe, AVISA al flujo superior
+  if (existe.exists) {
+    throw Exception("DNI_YA_EXISTE");
   }
 
+  String fotoUrl = "";
+  if (data["imagenFile"] != null) {
+    fotoUrl = await subirFoto(dni, data["imagenFile"]);
+  }
+
+  await firestore.collection("estudiantes").doc(dni).set({
+    "id": dni,
+    "padreId": uid,
+    "nombre": data["nombre"],
+    "apellido": data["apellido"],
+    "dni": dni,
+    "fechaNacimiento": data["fechaNacimiento"],
+    "genero": data["genero"],
+    "celular": data["celular"],
+    "fotoUrl": fotoUrl,
+    "ocupacion": data["ocupacion"],
+    "institucion": data["institucion"],
+    "grado": data["grado"],
+    "centroTrabajo": data["centroTrabajo"],
+    "estado": "registrado",
+    "matriculaPagada": false,
+    "fechaMatricula": DateTime.now(),
+    "activo": true,
+  });
+}
   @override
   Widget build(BuildContext context) {
     final total = estudiantesPendientes.length * COSTO_MATRICULA_BASE;

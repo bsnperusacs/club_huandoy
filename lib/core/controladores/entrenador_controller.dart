@@ -1,20 +1,22 @@
-// 📁 lib/roles/admin/controladores/entrenador_controller.dart
+// 📁 lib/core/controladores/entrenador_controller.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EntrenadoresController {
   final _db = FirebaseFirestore.instance;
 
   // ============================
-  // CREAR ENTRENADOR
+  // CREAR ENTRENADOR (DNI = ID)
   // ============================
-  Future<String> crearEntrenador({
+  Future<void> crearEntrenador({
+    required String dni,
     required String nombres,
     required String apellidos,
     required String telefono,
     required List<String> disciplinas,
   }) async {
     try {
-      final doc = await _db.collection('entrenadores').add({
+      await _db.collection('entrenadores').doc(dni).set({
+        'dni': dni,
         'nombres': nombres.trim(),
         'apellidos': apellidos.trim(),
         'telefono': telefono.trim(),
@@ -22,7 +24,6 @@ class EntrenadoresController {
         'activo': true,
         'fechaCreacion': FieldValue.serverTimestamp(),
       });
-      return doc.id;
     } catch (e) {
       throw Exception("Error al crear entrenador: $e");
     }
@@ -31,9 +32,12 @@ class EntrenadoresController {
   // ============================
   // EDITAR ENTRENADOR
   // ============================
-  Future<void> editarEntrenador(String id, Map<String, dynamic> data) async {
+  Future<void> editarEntrenador(
+    String dni,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      await _db.collection('entrenadores').doc(id).update(data);
+      await _db.collection('entrenadores').doc(dni).update(data);
     } catch (e) {
       throw Exception("Error al editar entrenador: $e");
     }
@@ -42,12 +46,12 @@ class EntrenadoresController {
   // ============================
   // ACTIVAR / DESACTIVAR
   // ============================
-  Future<void> desactivarEntrenador(String id) async {
-    await _db.collection('entrenadores').doc(id).update({'activo': false});
+  Future<void> desactivarEntrenador(String dni) async {
+    await _db.collection('entrenadores').doc(dni).update({'activo': false});
   }
 
-  Future<void> activarEntrenador(String id) async {
-    await _db.collection('entrenadores').doc(id).update({'activo': true});
+  Future<void> activarEntrenador(String dni) async {
+    await _db.collection('entrenadores').doc(dni).update({'activo': true});
   }
 
   // ============================
@@ -58,5 +62,22 @@ class EntrenadoresController {
         .collection('entrenadores')
         .orderBy('nombres')
         .snapshots();
+  }
+
+  // ============================
+  // OBTENER ENTRENADOR POR DNI
+  // ============================
+  Future<Map<String, dynamic>> obtenerEntrenadorPorDni(String dni) async {
+    final doc = await _db.collection('entrenadores').doc(dni).get();
+    if (!doc.exists) throw "Entrenador no existe";
+    return doc.data()!;
+  }
+
+  // ============================
+  // NOMBRE COMPLETO
+  // ============================
+  Future<String> obtenerNombreEntrenador(String dni) async {
+    final e = await obtenerEntrenadorPorDni(dni);
+    return "${e['nombres']} ${e['apellidos']}".trim();
   }
 }

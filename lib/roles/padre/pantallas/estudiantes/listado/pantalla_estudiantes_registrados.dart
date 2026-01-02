@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:club_huandoy/core/modelos/estudiante_model.dart';
 import 'package:club_huandoy/core/providers/carrito_asignacion_provider.dart';
-import 'pantalla_asignar_horario.dart';
+import '../horario/pantalla_asignar_horario.dart';
 
 const double COSTO_MATRICULA = 50.0;
 

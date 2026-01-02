@@ -1,4 +1,4 @@
-// 📁 Ubicación: lib/roles/admin/modelos/asistencia_model.dart
+// 📁 Ubicación: lib/core/modelos/asistencia_model.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 

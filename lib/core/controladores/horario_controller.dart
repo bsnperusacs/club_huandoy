@@ -1,4 +1,4 @@
-// 📁 lib/roles/admin/controladores/horario_controller.dart
+// 📁 lib/core/controladores/horario_controller.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -47,5 +47,26 @@ class HorariosController {
 
   Stream<QuerySnapshot> listarHorarios() {
     return _db.collection('horarios').orderBy('horaInicio').snapshots();
+  }
+
+  // ============================================================
+  // 🔍 OBTENER HORARIO POR ID (SOLO LECTURA)
+  // ============================================================
+  Future<Map<String, dynamic>> obtenerHorarioPorId(String horarioId) async {
+    final doc = await _db.collection('horarios').doc(horarioId).get();
+    if (!doc.exists) throw "Horario no existe";
+    return doc.data()!;
+  }
+
+  // ============================================================
+  // 🔤 NOMBRE LEGIBLE DEL HORARIO (PARA PERFIL)
+  // ============================================================
+  Future<String> obtenerNombreHorario(String horarioId) async {
+    final h = await obtenerHorarioPorId(horarioId);
+    final dias = (h['dias'] as List?)?.join(', ') ?? '';
+    final hi = h['horaInicio'] ?? '';
+    final hf = h['horaFin'] ?? '';
+    final lugar = h['lugar'] ?? '';
+    return "$dias | $hi - $hf | $lugar".trim();
   }
 }

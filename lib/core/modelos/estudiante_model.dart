@@ -1,48 +1,54 @@
-//lib/core/modelos/estudiante_model.dart
-
+// lib/core/modelos/estudiante_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Estudiante {
-  String id;            // 🔥 AHORA ESTE ID = DNI
+  // ================= IDENTIDAD =================
+  String id;
   String padreId;
   String nombre;
   String apellido;
   String dni;
 
+  // ================= DATOS PERSONALES =================
   DateTime? fechaNacimiento;
   String genero;
   String celular;
-
   String fotoUrl;
 
-  // ESTADO DE MATRÍCULA
-  String estado;               
-  bool matriculaPagada;        
-
+  // ================= ESTADO / MATRÍCULA =================
+  String estado;
+  bool matriculaPagada;
   DateTime? fechaMatricula;
   DateTime? fechaPago;
+  bool activo;
 
-  // ASIGNACIÓN (se completará DESPUÉS de pagar)
+  // ================= ASIGNACIÓN =================
   String disciplinaId;
-  String categoriaId;
-  String grupoId;
-  String horarioId;
-  String entrenadorId;
+  String disciplinaNombre;
+  String categoria;
 
-  // MONTOS
+  String grupoId;
+  String grupoNombre;
+
+  String horarioId;
+  String horarioNombre;
+
+  String entrenadorId;
+  String entrenadorNombre;
+
+  // ================= MONTOS =================
   double montoCategoria;
   double montoProrrateo;
   double montoDescuento;
   double montoFinal;
 
-  bool activo;
-
   Estudiante({
-    required this.id,              // 🔥 Se usará como DNI
+    required this.id,
     required this.padreId,
     required this.nombre,
     required this.apellido,
     required this.dni,
+
     required this.fechaNacimiento,
     required this.genero,
     required this.celular,
@@ -52,36 +58,36 @@ class Estudiante {
     required this.matriculaPagada,
     required this.fechaMatricula,
     required this.fechaPago,
+    required this.activo,
 
     required this.disciplinaId,
-    required this.categoriaId,
+    required this.disciplinaNombre,
+    required this.categoria,
+
     required this.grupoId,
+    required this.grupoNombre,
+
     required this.horarioId,
+    required this.horarioNombre,
+
     required this.entrenadorId,
+    required this.entrenadorNombre,
 
     required this.montoCategoria,
     required this.montoProrrateo,
     required this.montoDescuento,
     required this.montoFinal,
-
-    required this.activo,
   });
 
-  // ===================================================
-  // 🔥 CONVERTIR DESDE FIRESTORE HACIA EL MODELO
-  //    AQUÍ ES DONDE id = DNI
-  // ===================================================
   factory Estudiante.fromMap(Map<String, dynamic> map, String idDocumento) {
-    
-    // 🔥 idDocumento = DNI porque tú guardas doc(dni)
     final dniLeido = map["dni"]?.toString().trim() ?? idDocumento;
 
     return Estudiante(
-      id: dniLeido,                   // 🔥 ID DEL MODELO = DNI
+      id: dniLeido,
       padreId: map["padreId"] ?? "",
       nombre: map["nombre"] ?? "",
       apellido: map["apellido"] ?? "",
-      dni: dniLeido,                 // 🔥 DNI siempre consistente
+      dni: dniLeido,
 
       fechaNacimiento: map["fechaNacimiento"] is Timestamp
           ? (map["fechaNacimiento"] as Timestamp).toDate()
@@ -91,7 +97,7 @@ class Estudiante {
       celular: map["celular"] ?? "",
       fotoUrl: map["fotoUrl"] ?? "",
 
-      estado: map["estado"] ?? "registrado",
+      estado: map["estado"] ?? "",
       matriculaPagada: map["matriculaPagada"] ?? false,
 
       fechaMatricula: map["fechaMatricula"] is Timestamp
@@ -102,24 +108,28 @@ class Estudiante {
           ? (map["fechaPago"] as Timestamp).toDate()
           : null,
 
+      activo: map["activo"] ?? true,
+
       disciplinaId: map["disciplinaId"] ?? "",
-      categoriaId: map["categoriaId"] ?? "",
+      disciplinaNombre: map["disciplinaNombre"] ?? "",
+      categoria: map["categoria"] ?? "",
+
       grupoId: map["grupoId"] ?? "",
+      grupoNombre: map["grupoNombre"] ?? "",
+
       horarioId: map["horarioId"] ?? "",
+      horarioNombre: map["horarioNombre"] ?? "",
+
       entrenadorId: map["entrenadorId"] ?? "",
+      entrenadorNombre: map["entrenadorNombre"] ?? "",
 
       montoCategoria: (map["montoCategoria"] ?? 0).toDouble(),
       montoProrrateo: (map["montoProrrateo"] ?? 0).toDouble(),
       montoDescuento: (map["montoDescuento"] ?? 0).toDouble(),
       montoFinal: (map["montoFinal"] ?? 0).toDouble(),
-
-      activo: map["activo"] ?? true,
     );
   }
 
-  // ===================================================
-  // 🔥 CONVERTIR HACIA FIRESTORE
-  // ===================================================
   Map<String, dynamic> toMap() {
     return {
       "padreId": padreId,
@@ -136,19 +146,25 @@ class Estudiante {
       "matriculaPagada": matriculaPagada,
       "fechaMatricula": fechaMatricula,
       "fechaPago": fechaPago,
+      "activo": activo,
 
       "disciplinaId": disciplinaId,
-      "categoriaId": categoriaId,
+      "disciplinaNombre": disciplinaNombre,
+      "categoria": categoria,
+
       "grupoId": grupoId,
+      "grupoNombre": grupoNombre,
+
       "horarioId": horarioId,
+      "horarioNombre": horarioNombre,
+
       "entrenadorId": entrenadorId,
+      "entrenadorNombre": entrenadorNombre,
 
       "montoCategoria": montoCategoria,
       "montoProrrateo": montoProrrateo,
       "montoDescuento": montoDescuento,
       "montoFinal": montoFinal,
-
-      "activo": activo,
     };
   }
 }

@@ -30,12 +30,12 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
 
   StreamSubscription<QuerySnapshot>? _pagoSub;
   bool _pagoProcesado = false;
+  String? _externalReference; // 👈 ID del pago actual
 
   @override
   void initState() {
     super.initState();
     _cargarNombresEstudiantes();
-    // ❌ NO escuchar pagos aquí
   }
 
   @override
@@ -60,18 +60,16 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
     if (mounted) setState(() => _nombresEstudiantes = map);
   }
 
-  // =============================
-  // ESCUCHAR PAGO APROBADO (SE ACTIVA DESPUÉS DE PAGAR)
-  // =============================
+  // ESCUCHAR SOLO EL PAGO ACTUAL
   void _escucharPagoAprobado() {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    if (_externalReference == null) return;
 
     _pagoSub?.cancel();
     _pagoProcesado = false;
 
     _pagoSub = FirebaseFirestore.instance
         .collection("pagos")
-        .where("uid", isEqualTo: uid)
+        .where("external_reference", isEqualTo: _externalReference)
         .where("estado", isEqualTo: "aprobado")
         .snapshots()
         .listen((snap) {
@@ -108,9 +106,7 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
     });
   }
 
-  // =============================
-  // INICIAR PAGO (MERCADO PAGO)
-  // =============================
+  // INICIAR PAGO
   Future<void> _iniciarPago(
     double total,
     CarritoAsignacionProvider carrito,
@@ -141,9 +137,12 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
     }
 
     final data = jsonDecode(res.body);
-    if (data["init_point"] == null) {
-      throw Exception("Respuesta inválida: ${res.body}");
+    if (data["init_point"] == null || data["external_reference"] == null) {
+      throw Exception("Respuesta inválida");
     }
+
+    _externalReference = data["external_reference"]; // 👈 guardar ID
+    _escucharPagoAprobado(); // 👈 escuchar DESPUÉS de tener el ID
 
     final ok = await launchUrl(
       Uri.parse(data["init_point"]),
@@ -155,9 +154,6 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
     }
   }
 
-  // =============================
-  // APLICAR CONVENIO
-  // =============================
   Future<void> _aplicarConvenio(CarritoAsignacionProvider carrito) async {
     final codigo = _codigoController.text.trim().toUpperCase();
     _codigoController.text = codigo;
@@ -203,21 +199,13 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
     });
   }
 
-  // =============================
-  // PAGAR (ABRE MP Y LUEGO ESCUCHA)
-  // =============================
   Future<void> _pagar(CarritoAsignacionProvider carrito) async {
     if (carrito.items.isEmpty) return;
 
     setState(() => _cargando = true);
     try {
       final totalFinal = carrito.totalGlobal - _descuento;
-
-      // 1) Abre Mercado Pago
       await _iniciarPago(totalFinal, carrito);
-
-      // 2) Recién ahora escucha el pago
-      _escucharPagoAprobado();
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -236,9 +224,8 @@ class _PantallaPagarCarritoState extends State<PantallaPagarCarrito> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final carrito = Provider.of<CarritoAsignacionProvider>(context);
-
+    final theme = Theme.of(context);
     final subtotal = carrito.totalGlobal;
     final totalFinal = subtotal - _descuento;
     final grupos = _agruparPorEstudiante(carrito.items);

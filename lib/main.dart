@@ -28,12 +28,13 @@ import 'pantalla_feedback.dart';
 
 // ================= PADRE =================
 import 'roles/padre/pantallas/matricula/pantalla_matricular_estudiante.dart';
-import 'roles/padre/pantallas/pantalla_registro_padre.dart';
-import 'roles/padre/pantallas/estudiantes_registrados.dart';
+import 'roles/padre/registro/pantalla_registro_padre.dart';
+import 'roles/padre/pantallas/estudiantes/listado/pantalla_estudiantes_registrados.dart';
 import 'roles/padre/pantallas/pago/pantalla_pagar_carrito.dart';
+import 'roles/padre/pantallas/estudiantes/perfil/pantalla_lista_perfil.dart';
 
 // ====== PADRE / EN DESARROLLO ======
-import 'roles/padre/pantallas/estudiantes/pantalla_perfil_estudiante.dart';
+import 'roles/padre/pantallas/estudiantes/perfil/pantalla_perfil_estudiante.dart';
 import 'roles/padre/pantallas/tienda/pantalla_tienda_club.dart';
 import 'roles/padre/pantallas/torneos/pantalla_torneos.dart';
 import 'roles/padre/pantallas/historial/pantalla_historial_pagos.dart';
@@ -120,6 +121,8 @@ class ClubHuandoyApp extends StatelessWidget {
               const PantallaPerfilEstudiante(),
           '/tiendaClub': (context) =>
               const PantallaTiendaClub(),
+          '/listaPerfilEstudiantes': (context) =>
+              const PantallaListaPerfil(),
 
           // TORNEOS
           '/torneos': (context) => const PantallaTorneos(),

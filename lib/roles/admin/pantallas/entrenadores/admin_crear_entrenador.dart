@@ -12,7 +12,7 @@ import '../../../../core/modelos/disciplina_model.dart';
 class AdminCrearEntrenador extends StatefulWidget {
   final EntrenadorModel? entrenadorExistente;
 
-  const AdminCrearEntrenador({this.entrenadorExistente, super.key});
+  const AdminCrearEntrenador({super.key, this.entrenadorExistente});
 
   @override
   State<AdminCrearEntrenador> createState() => _AdminCrearEntrenadorState();
@@ -41,15 +41,17 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
       editando = true;
       final e = widget.entrenadorExistente!;
 
+      _dniCtrl.text = e.id; // 🔥 DNI = ID
       _nombresCtrl.text = e.nombres;
       _apellidosCtrl.text = e.apellidos;
       _telefonoCtrl.text = e.telefono;
-
       disciplinasSeleccionadas = List<String>.from(e.disciplinas);
     }
   }
 
-  // 🔥 Consulta DNI automática
+  // =============================
+  // CONSULTA DNI (RENIEC)
+  // =============================
   Future<void> consultarDniAuto(String numero) async {
     if (numero.length != 8) return;
 
@@ -74,6 +76,71 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
     setState(() => cargandoApi = false);
   }
 
+  // =============================
+  // GUARDAR ENTRENADOR
+  // =============================
+  Future<void> _guardar() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_dniCtrl.text.trim().length != 8) {
+      _alerta("DNI inválido");
+      return;
+    }
+
+    if (disciplinasSeleccionadas.isEmpty) {
+      _alerta("Selecciona al menos una disciplina");
+      return;
+    }
+
+    final dni = _dniCtrl.text.trim();
+    final nombres = _nombresCtrl.text.trim();
+    final apellidos = _apellidosCtrl.text.trim();
+    final telefono = _telefonoCtrl.text.trim();
+
+    if (editando) {
+      await _controller.editarEntrenador(
+        dni, // 🔥 ID = DNI
+        {
+          'dni': dni,
+          'nombres': nombres,
+          'apellidos': apellidos,
+          'telefono': telefono,
+          'disciplinas': disciplinasSeleccionadas,
+          'activo': true,
+        },
+      );
+    } else {
+      await _controller.crearEntrenador(
+        dni: dni, // 🔥 ID = DNI
+        nombres: nombres,
+        apellidos: apellidos,
+        telefono: telefono,
+        disciplinas: disciplinasSeleccionadas,
+      );
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
+  void _alerta(String msg) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Text(msg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          )
+        ],
+      ),
+    );
+  }
+
+  // =============================
+  // UI
+  // =============================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,13 +157,19 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
               TextFormField(
                 controller: _dniCtrl,
                 maxLength: 8,
+                enabled: !editando,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: "DNI"),
                 onChanged: consultarDniAuto,
+                validator: (v) =>
+                    v != null && v.length == 8 ? null : "DNI inválido",
               ),
 
               if (cargandoApi)
-                const Center(child: CircularProgressIndicator()),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
 
               const SizedBox(height: 12),
 
@@ -126,9 +199,8 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
                     v == null || v.isEmpty ? "Campo obligatorio" : null,
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 24),
 
-              // 🔥 LISTA DE DISCIPLINAS (checkbox)
               const Text(
                 "Disciplinas",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -141,26 +213,21 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  final docs = snapshot.data!.docs;
-                  final disciplinas = docs
+                  final disciplinas = snapshot.data!.docs
                       .map((d) => DisciplinaModel.fromFirestore(d))
                       .toList();
 
                   return Column(
                     children: disciplinas.map((d) {
-                      final seleccionado =
-                          disciplinasSeleccionadas.contains(d.id);
-
+                      final sel = disciplinasSeleccionadas.contains(d.id);
                       return CheckboxListTile(
                         title: Text(d.nombre),
-                        value: seleccionado,
+                        value: sel,
                         onChanged: (v) {
                           setState(() {
-                            if (v == true) {
-                              disciplinasSeleccionadas.add(d.id);
-                            } else {
-                              disciplinasSeleccionadas.remove(d.id);
-                            }
+                            v == true
+                                ? disciplinasSeleccionadas.add(d.id)
+                                : disciplinasSeleccionadas.remove(d.id);
                           });
                         },
                       );
@@ -169,53 +236,20 @@ class _AdminCrearEntrenadorState extends State<AdminCrearEntrenador> {
                 },
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 24),
 
-              ElevatedButton(
-                onPressed: _guardar,
-                child: Text(editando ? "Guardar Cambios" : "Crear Entrenador"),
+              SizedBox(
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _guardar,
+                  child:
+                      Text(editando ? "Guardar Cambios" : "Crear Entrenador"),
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _guardar() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (disciplinasSeleccionadas.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Selecciona al menos una disciplina")),
-      );
-      return;
-    }
-
-    final nombres = _nombresCtrl.text.trim();
-    final apellidos = _apellidosCtrl.text.trim();
-    final telefono = _telefonoCtrl.text.trim();
-
-    if (editando) {
-      await _controller.editarEntrenador(
-        widget.entrenadorExistente!.id,
-        {
-          'nombres': nombres,
-          'apellidos': apellidos,
-          'telefono': telefono,
-          'disciplinas': disciplinasSeleccionadas,
-        },
-      );
-    } else {
-      await _controller.crearEntrenador(
-        nombres: nombres,
-        apellidos: apellidos,
-        telefono: telefono,
-        disciplinas: disciplinasSeleccionadas,
-      );
-    }
-
-    if (!mounted) return;
-    Navigator.pop(context);
   }
 }

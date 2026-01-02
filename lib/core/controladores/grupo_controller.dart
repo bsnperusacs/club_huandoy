@@ -1,5 +1,4 @@
-// 📁 lib/roles/admin/controladores/grupo_controller.dart
-
+// 📁 lib/core/controladores/grupo_controller.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GruposController {
@@ -13,7 +12,6 @@ class GruposController {
     if (index < letras.length) {
       return letras[index];
     }
-    // si pasara Z, generar AA, AB... pero por ahora no lo necesitas
     return "Z";
   }
 
@@ -27,7 +25,7 @@ class GruposController {
         .where('categoria', isEqualTo: categoria)
         .get();
 
-    final cantidad = snap.docs.length; // 0 → A, 1 → B, 2 → C...
+    final cantidad = snap.docs.length;
     return _seccionDesdeIndex(cantidad);
   }
 
@@ -43,7 +41,6 @@ class GruposController {
     required DateTime fechaInicioClases,
   }) async {
     try {
-      // → Calcular sección automática
       final seccion = await _generarSeccion(disciplinaId, categoria);
 
       final doc = await _db.collection('grupos').add({
@@ -51,7 +48,7 @@ class GruposController {
         'horarioId': horarioId,
         'entrenadorId': entrenadorId,
         'categoria': categoria,
-        'seccion': seccion,                // 🔥 NUEVO
+        'seccion': seccion,
         'cupoMaximo': cupoMaximo,
         'inscritos': 0,
         'activo': true,
@@ -60,14 +57,13 @@ class GruposController {
       });
 
       return doc.id;
-
     } catch (e) {
       throw Exception("Error al crear grupo: $e");
     }
   }
 
   // ============================================================
-  // 🔧 EDITAR GRUPO (NO CAMBIO SECCIÓN EXISTENTE)
+  // 🔧 EDITAR / ACTIVAR / DESACTIVAR
   // ============================================================
   Future<void> editarGrupo(String id, Map<String, dynamic> data) async {
     await _db.collection('grupos').doc(id).update(data);
@@ -83,5 +79,24 @@ class GruposController {
 
   Stream<QuerySnapshot> listarGrupos() {
     return _db.collection('grupos').snapshots();
+  }
+
+  // ============================================================
+  // 🔍 OBTENER GRUPO POR ID (SOLO LECTURA)
+  // ============================================================
+  Future<Map<String, dynamic>> obtenerGrupoPorId(String grupoId) async {
+    final doc = await _db.collection('grupos').doc(grupoId).get();
+    if (!doc.exists) throw "Grupo no existe";
+    return doc.data()!;
+  }
+
+  // ============================================================
+  // 🔤 NOMBRE LEGIBLE DEL GRUPO (PARA PERFIL)
+  // ============================================================
+  Future<String> obtenerNombreGrupo(String grupoId) async {
+    final grupo = await obtenerGrupoPorId(grupoId);
+    final categoria = grupo['categoria'] ?? '';
+    final seccion = grupo['seccion'] ?? '';
+    return "Grupo $categoria $seccion".trim();
   }
 }
